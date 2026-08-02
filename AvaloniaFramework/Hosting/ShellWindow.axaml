@@ -1,0 +1,13 @@
+<Window
+    Title="ShellWindow"
+    x:Class="AvaloniaFramework.Hosting.ShellWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        The window is only a frame: the navigation controller swaps its Content for whatever
+        presenter is on top of the stack. What is here shows before the first push.
+    -->
+    <Panel Background="Black" />
+
+</Window>

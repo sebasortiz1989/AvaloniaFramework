@@ -4,40 +4,85 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A .NET 8 class library that packages a set of reusable Avalonia UI controls, converters, markup
-extensions, and presentation-layer (MVP) abstractions into a redistributable NuGet package
-(`AvaloniaFramework`, currently v1.0.0). There is no runnable app in this repo — no `App.axaml`,
-`Program.cs`, or entry point. It is consumed by other Avalonia applications as a component library.
+A .NET 10 class library packaging an MVP/navigation framework for Avalonia 12 into a redistributable
+NuGet package (`AvaloniaFramework`, currently v1.0.0). There is no runnable app here — no
+`Program.cs` or entry point. It is consumed by other Avalonia applications as a component library;
+`../DapperDemo` is the reference consumer.
+
+`README.md` documents the public API and how to wire an app; keep it in sync when the surface changes.
 
 ## Commands
 
 ```bash
-# Build (from repo root or AvaloniaFramework/)
 dotnet build AvaloniaFramework.slnx
-# or
-cd AvaloniaFramework && dotnet build
-
-# Pack the NuGet package (also happens automatically on build, since
-# GeneratePackageOnBuild=true in the csproj)
-cd AvaloniaFramework && dotnet pack
 ```
 
-There are no test projects and no lint/format tooling configured in this repo. Do not invent test
-or lint commands — verify changes by building and, if UI behavior changed, by referencing the
-`Design.PreviewWith` block in the relevant `.axaml` file (Avalonia's XAML previewer) or by
-consuming the package from a sample app.
+A build also packs, since `GeneratePackageOnBuild=true`. The `.nupkg` lands in
+`AvaloniaFramework/bin/<Configuration>/`, which is the local NuGet feed `DapperDemo/NuGet.Config`
+points at — so a rebuild here is what publishes changes to that app.
 
-## Project layout and source-inclusion gotcha
+There are no test projects and no lint/format tooling. Do not invent test or lint commands. Verify
+changes by building, and for behavioural changes by consuming the package from `../DapperDemo`
+(`dotnet build DapperDemo.sln`). A GUI app cannot be launched from a headless shell — Avalonia's
+native platform fails to start a render timer — so runtime verification of container, lifecycle,
+navigation, and command behaviour is best done from a small console harness referencing the package.
 
+## Layout
 
-## Conventions specific to this codebase
+```
+AvaloniaFramework/
+  Core/            Unit, await helpers (WithSync/NoSync/Forget), SynchronizationContext.SwitchTo/Run
+  DependencyInjection/  Container, ContainerBuilder, ImmutableContainerBuilder,
+                        ContainerRegistration, Factory<T>, Lifestyle
+  Presentation/    NavigationController, SynchronizedCommand, PresentationExecutionContext
+    UseCase/       PresentationModelBase<,>, PresenterBase<,,>, LifecycleStep<,>
+  Controls/        PresenterUserControl<,,>, Buttons/, Inputs/
+  Hosting/         ApplicationPreview, ShellWindow, ShellView, Navigation/, DependencyInjection/
+  LayoutStyles.axaml   Merges every control theme; consumers include this in App.axaml
+```
+
+## Conventions
+
+- **`Unit`, never `Void`.** The no-input/no-result type is `Unit`. `Void` collides with
+  `System.Void` once a consumer puts `AvaloniaFramework` in a global using, which is the intended
+  consumption pattern.
+- **Interfaces are not `I`-prefixed.** `NavigationController`, `PresenterBase<,,>`,
+  `LifecycleStep<,>`, and `PresentationModel<,>` are interfaces. This is deliberate and matches the
+  lineage this framework was extracted from — do not "fix" it piecemeal.
+- **Every new control theme must be added to `LayoutStyles.axaml`** as a `ResourceInclude`, or the
+  control renders untemplated in consuming apps with no build error.
+- **Control appearance is expressed as `V*` styled properties per visual state**
+  (`VNormalBackground`, `VPressedForeground`, `VCheckedImageOne`, …) rather than baked into the
+  template, so consumers declare a whole variant as one style class. Template children are named
+  `PART_*` and switched via nested `^:pressed /template/ …` selectors binding back with
+  `{Binding $parent[ns:Control].VSomething}` — `TemplateBinding` does not work inside a nested
+  style's setter.
+- Controls deriving from a stock Avalonia control must override `StyleKeyOverride`, or they inherit
+  the base control's theme instead of their own.
+- `PresentationModelBase` declares a plain `PropertyChanged` event so consumers can use
+  PropertyChanged.Fody (`[AddINotifyPropertyChangedInterface]`) on derived view models.
+- **The container is reflection-based** (`ConstructorInfo.Invoke`, `MakeGenericMethod` for
+  `Factory<T>`), which is where the `IL2104` trim warnings in consuming mobile builds come from.
+  This is a known, documented limitation (see `README.md`) — not something to silence with a
+  `NoWarn`. Resolution failures under trimming surface at runtime, not build time.
 
 ## Avalonia docs connector
 
-An Avalonia MCP connector is configured for this repo. Before writing or editing any `.axaml`, custom control, style selector, or binding, call `get_avalonia_expert_rules` once per session, then `search_avalonia_docs` for the specific topic. Prefer it over recalling Avalonia from memory — this project is on Avalonia **12.1.1**, so verify anything version-sensitive rather than assuming 11.x behaviour.
+An Avalonia MCP connector is configured for this repo. Before writing or editing any `.axaml`, custom
+control, style selector, or binding, call `get_avalonia_expert_rules` once per session, then
+`search_avalonia_docs` for the specific topic. Prefer it over recalling Avalonia from memory — this
+project is on Avalonia **12.1.1**, so verify anything version-sensitive rather than assuming 11.x
+behaviour.
 
 Limits worth knowing:
 
-- `lookup_avalonia_api` has gaps (e.g. no entry for `InputPane`, which `UserControlMobile` relies on). `search_avalonia_docs` is the more reliable of the two.
-- It covers stock Avalonia only. `Verion.Apresentacao.Avalonia` types (`VTextBoxWithLabel`, `PresenterBase`, `NavigationController`, `SynchronizedCommand`) are absent — read existing code or the package itself for those.
-- The migration tools (`analyze_wpf_project`, `migrate_to_avalonia`, `migrate_to_xpf`, `lookup_wpf_to_avalonia_mapping`) are for WPF ports and are not relevant here.
+- `lookup_avalonia_api` has gaps (e.g. no entry for `InputPane`, which `PresenterUserControl` relies
+  on). `search_avalonia_docs` is the more reliable of the two.
+- `search_avalonia_docs` can return responses too large to read in one call; prefer narrow queries.
+- Some API details are faster to confirm against the reference assemblies in
+  `~/.nuget/packages/avalonia/12.1.1/ref/net10.0/` than through the docs. For example `GotFocus`
+  carries `FocusChangedEventArgs`, not a `GotFocusEventArgs`.
+- CSS-shorthand `translate()` accepts **px only** — no percentages. A layout needing "shift by half
+  my own height" has no declarative form; restructure the template instead.
+- The migration tools (`analyze_wpf_project`, `migrate_to_avalonia`, `migrate_to_xpf`,
+  `lookup_wpf_to_avalonia_mapping`) are for WPF ports and are not relevant here.

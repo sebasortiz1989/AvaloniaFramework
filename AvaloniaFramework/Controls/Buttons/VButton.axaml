@@ -1,0 +1,50 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:buttons="using:AvaloniaFramework.Controls.Buttons"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ControlTheme TargetType="buttons:VButton" x:Key="{x:Type buttons:VButton}">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    Background="{TemplateBinding VNormalBackground}"
+                    BorderBrush="{TemplateBinding VNormalBorderBrush}"
+                    BorderThickness="{TemplateBinding VBorderThickness}"
+                    CornerRadius="{TemplateBinding VCornerRadius}"
+                    Padding="{TemplateBinding VPadding}"
+                    x:Name="PART_Root">
+                    <TextBlock
+                        FontSize="{TemplateBinding VFontSize}"
+                        FontWeight="{TemplateBinding VFontWeight}"
+                        Foreground="{TemplateBinding VNormalForeground}"
+                        HorizontalAlignment="{TemplateBinding VTextHorizontalAlignment}"
+                        Text="{TemplateBinding VText}"
+                        TextAlignment="Center"
+                        TextWrapping="Wrap"
+                        VerticalAlignment="{TemplateBinding VTextVerticalAlignment}"
+                        x:Name="PART_Text" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:pressed /template/ Border#PART_Root">
+            <Setter Property="Background" Value="{Binding $parent[buttons:VButton].VPressedBackground}" />
+            <Setter Property="BorderBrush" Value="{Binding $parent[buttons:VButton].VPressedBorderBrush}" />
+        </Style>
+        <Style Selector="^:pressed /template/ TextBlock#PART_Text">
+            <Setter Property="Foreground" Value="{Binding $parent[buttons:VButton].VPressedForeground}" />
+        </Style>
+
+        <Style Selector="^:disabled /template/ Border#PART_Root">
+            <Setter Property="Background" Value="{Binding $parent[buttons:VButton].VDisabledBackground}" />
+        </Style>
+        <Style Selector="^:disabled /template/ TextBlock#PART_Text">
+            <Setter Property="Foreground" Value="{Binding $parent[buttons:VButton].VDisabledForeground}" />
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

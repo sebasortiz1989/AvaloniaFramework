@@ -1,25 +1,42 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <AvaloniaVersion>11.0.10</AvaloniaVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AvaloniaVersion>12.1.1</AvaloniaVersion>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <RootNamespace>AvaloniaFramework</RootNamespace>
+    <AssemblyName>AvaloniaFramework</AssemblyName>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>AvaloniaFramework</PackageId>
     <Version>1.0.0</Version>
     <Authors>Sebastian Ortiz</Authors>
-    <Description>Extracted Avalonia Framework</Description>
+    <Description>
+      A small MVP/navigation framework for Avalonia: a dependency-injection container,
+      a presenter lifecycle, a navigation controller, and a handful of styled controls.
+    </Description>
+    <PackageTags>avalonia;mvp;navigation;dependency-injection;controls</PackageTags>
+    <RepositoryUrl>https://github.com/SebastianOrtiz/AvaloniaFramework</RepositoryUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
-    <PackageReference Include="JetBrains.Annotations" Version="2026.2.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
-    <PackageReference Include="System.Reactive" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Hosting\ShellView.axaml.cs">
+      <DependentUpon>ShellView.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

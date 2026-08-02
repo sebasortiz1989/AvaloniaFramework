@@ -1,0 +1,69 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:inputs="using:AvaloniaFramework.Controls.Inputs"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ControlTheme TargetType="inputs:VTextBoxWithLabel" x:Key="{x:Type inputs:VTextBoxWithLabel}">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <!--
+                    Label above the field rather than notched into its top border: an overhanging
+                    label needs its own measured height to offset by, and binding a margin to a
+                    control's own bounds risks a layout loop. VDescriptionBackground still paints
+                    behind the label so it reads as part of the field on a tinted surface.
+                -->
+                <Grid RowDefinitions="Auto,*" Width="{TemplateBinding VWidth}">
+                    <Border
+                        Background="{TemplateBinding VDescriptionBackground}"
+                        HorizontalAlignment="Left"
+                        IsVisible="{TemplateBinding VDescriptionText,
+                                                    Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                        Margin="2,0,0,4"
+                        Padding="{TemplateBinding VDescriptionPadding}"
+                        x:Name="PART_DescriptionHost">
+                        <TextBlock
+                            FontSize="{TemplateBinding VDescriptionFontSize}"
+                            FontWeight="{TemplateBinding VDescriptionFontWeight}"
+                            Foreground="{TemplateBinding VDescriptionForeground}"
+                            Text="{TemplateBinding VDescriptionText}"
+                            x:Name="PART_Description" />
+                    </Border>
+
+                    <Border
+                        Background="{TemplateBinding VBackground}"
+                        BorderBrush="{TemplateBinding VBorderBrush}"
+                        BorderThickness="{TemplateBinding VBorderThickness}"
+                        CornerRadius="{TemplateBinding VCornerRadius}"
+                        Grid.Row="1"
+                        Height="{TemplateBinding VHeight}"
+                        x:Name="PART_Border">
+                        <TextBox
+                            Background="Transparent"
+                            BorderThickness="0"
+                            CaretBrush="{TemplateBinding VCaretBrush}"
+                            FontSize="{TemplateBinding VContentFontSize}"
+                            Foreground="{TemplateBinding VTextForeground}"
+                            Padding="{TemplateBinding VTextBoxPadding}"
+                            PasswordChar="{TemplateBinding VPasswordChar}"
+                            PlaceholderText="{TemplateBinding VTextWatermark}"
+                            Text="{Binding VText, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                            TextAlignment="{TemplateBinding VTextBoxTextAlignment}"
+                            VerticalAlignment="Stretch"
+                            VerticalContentAlignment="Center"
+                            x:Name="PART_TextBox" />
+                    </Border>
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:focus-within /template/ Border#PART_Border">
+            <Setter Property="BorderBrush" Value="{Binding $parent[inputs:VTextBoxWithLabel].VBorderBrushFocus}" />
+        </Style>
+        <Style Selector="^:focus-within /template/ TextBox#PART_TextBox">
+            <Setter Property="CaretBrush" Value="{Binding $parent[inputs:VTextBoxWithLabel].VCaretBrushFocus}" />
+            <Setter Property="Foreground" Value="{Binding $parent[inputs:VTextBoxWithLabel].VTextForegroundFocus}" />
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

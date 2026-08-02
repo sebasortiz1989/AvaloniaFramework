@@ -1,0 +1,52 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:buttons="using:AvaloniaFramework.Controls.Buttons"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ControlTheme TargetType="buttons:GroupButton" x:Key="{x:Type buttons:GroupButton}">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    Background="{TemplateBinding VNormalBackground}"
+                    BorderBrush="{TemplateBinding VNormalBorderBrush}"
+                    BorderThickness="{TemplateBinding VBorderThickness}"
+                    CornerRadius="{TemplateBinding VCornerRadius}"
+                    x:Name="PART_Root">
+                    <Panel>
+                        <Image
+                            Height="{TemplateBinding VImageOneHeight}"
+                            HorizontalAlignment="Center"
+                            Source="{TemplateBinding VNormalImageOne}"
+                            Stretch="Uniform"
+                            VerticalAlignment="Center"
+                            Width="{TemplateBinding VImageOneWidth}"
+                            x:Name="PART_ImageOne" />
+                        <ContentPresenter
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+                    </Panel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <!--  Pointer-over comes first so the checked state still wins when both apply.  -->
+        <Style Selector="^:pointerover /template/ Border#PART_Root">
+            <Setter Property="Background" Value="{Binding $parent[buttons:GroupButton].VPointeroverBackgroundColor}" />
+        </Style>
+
+        <Style Selector="^:checked /template/ Border#PART_Root">
+            <Setter Property="Background" Value="{Binding $parent[buttons:GroupButton].VCheckedBackground}" />
+            <Setter Property="BorderBrush" Value="{Binding $parent[buttons:GroupButton].VCheckedBorderBrush}" />
+        </Style>
+        <Style Selector="^:checked /template/ Image#PART_ImageOne">
+            <Setter Property="Source" Value="{Binding $parent[buttons:GroupButton].VCheckedImageOne}" />
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

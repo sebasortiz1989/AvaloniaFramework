@@ -25,7 +25,13 @@
     Warnings fail the build only in Release, so day-to-day Debug builds stay usable while a
     release cannot ship with unresolved analyzer complaints.
   -->
-  <PropertyGroup Condition="'$(Configuration)' == 'Release' AND '$(EnsureCodeQuality)' == 'true'">
+  <!--
+    Opt a project out with <EnsureCodeQualityWarningsAsErrors>false</EnsureCodeQualityWarningsAsErrors>.
+    Trimmed and AOT heads need this: the linker's IL2xxx trim-analysis warnings are promoted along
+    with everything else, and most come from third-party assemblies the project cannot fix. Those
+    projects still get analyzers and still report violations — just not as build failures.
+  -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' AND '$(EnsureCodeQuality)' == 'true' AND '$(EnsureCodeQualityWarningsAsErrors)' != 'false'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 

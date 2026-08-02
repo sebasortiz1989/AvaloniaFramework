@@ -1,2 +1,5 @@
 AvaloniaFramework/bin/
 AvaloniaFramework/obj/
+
+# NuGet pack output (PackageOutputPath)
+artifacts/

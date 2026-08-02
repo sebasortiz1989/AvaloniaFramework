@@ -12,7 +12,13 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <!--
+      Packing is an explicit `dotnet pack`, not a side effect of every build: now that consumers
+      reference this project directly, pack-on-build would run on each of their builds too.
+      Output goes to one configuration-independent folder so a Release pack does not land
+      somewhere a consumer's local feed is not looking.
+    -->
+    <PackageOutputPath>$(MSBuildThisFileDirectory)../artifacts</PackageOutputPath>
     <PackageId>AvaloniaFramework</PackageId>
     <Version>1.0.0</Version>
     <Authors>Sebastian Ortiz</Authors>
@@ -21,7 +27,9 @@
       a presenter lifecycle, a navigation controller, and a handful of styled controls.
     </Description>
     <PackageTags>avalonia;mvp;navigation;dependency-injection;controls</PackageTags>
-    <RepositoryUrl>https://github.com/SebastianOrtiz/AvaloniaFramework</RepositoryUrl>
+    <RepositoryUrl>https://github.com/sebasortiz1989/AvaloniaFramework</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/sebasortiz1989/AvaloniaFramework</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 

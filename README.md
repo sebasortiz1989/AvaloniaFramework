@@ -154,7 +154,23 @@ time. If you enable aggressive trimming, root your registered types (e.g. via a
 
 ```bash
 dotnet build AvaloniaFramework.slnx
+dotnet pack AvaloniaFramework.slnx -c Release   # -> artifacts/AvaloniaFramework.<version>.nupkg
 ```
 
-`GeneratePackageOnBuild` is on, so a build drops `AvaloniaFramework.<version>.nupkg` into
-`AvaloniaFramework/bin/<Configuration>/`. There are no tests in this repo.
+Packing is an explicit step rather than a side effect of building, and always writes to
+`artifacts/` regardless of configuration. There are no tests in this repo.
+
+## Consuming it
+
+Either add the published package, or — while the framework and the app are developed together —
+vendor it as a git submodule and reference the project directly, which removes the pack/version/
+restore cycle entirely:
+
+```bash
+git submodule add https://github.com/sebasortiz1989/AvaloniaFramework.git external/AvaloniaFramework
+dotnet sln YourApp.sln add external/AvaloniaFramework/AvaloniaFramework/AvaloniaFramework.csproj
+```
+
+Then `<ProjectReference Include="…/AvaloniaFramework/AvaloniaFramework.csproj" />`. Consumers must
+clone with `--recursive` (or run `git submodule update --init`), and the project must be in the
+solution or restore fails with `NU1105`.

@@ -17,12 +17,22 @@ NuGet package (`AvaloniaFramework`, currently v1.0.0). There is no runnable app 
 dotnet build AvaloniaFramework.slnx
 ```
 
-A build also packs, since `GeneratePackageOnBuild=true`. The `.nupkg` lands in
-`AvaloniaFramework/bin/<Configuration>/`, which is the local NuGet feed `DapperDemo/NuGet.Config`
-points at — so a rebuild here is what publishes changes to that app.
+Packing is explicit and configuration-independent — output always lands in `artifacts/` (gitignored):
+
+```bash
+dotnet pack AvaloniaFramework.slnx -c Release
+```
+
+`GeneratePackageOnBuild` is deliberately **off**: `../DapperDemo` consumes this repo as a git
+submodule + `ProjectReference`, so pack-on-build would fire on every one of that app's builds too.
+Nothing needs packing for that app to pick up a change here — a plain rebuild is enough. Packing is
+only for publishing.
+
+Note the consumer pins a **submodule commit**, so a change here does not reach other machines until
+it is committed and pushed and DapperDemo's submodule pointer is advanced.
 
 There are no test projects and no lint/format tooling. Do not invent test or lint commands. Verify
-changes by building, and for behavioural changes by consuming the package from `../DapperDemo`
+changes by building, and for behavioural changes by building `../DapperDemo`
 (`dotnet build DapperDemo.sln`). A GUI app cannot be launched from a headless shell — Avalonia's
 native platform fails to start a render timer — so runtime verification of container, lifecycle,
 navigation, and command behaviour is best done from a small console harness referencing the package.

@@ -1,0 +1,93 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:buttons="using:AvaloniaFramework.Apresentacao.Buttons.CardButtons"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Styles.Resources>
+        <StreamGeometry x:Key="checked">M105.286 92.0005L53.4485 62.7157V0.892254L105.286 92.0005ZM0.222168 92.0005L52.0596 0.892254V62.7157L0.222168 92.0005ZM52.7541 63.9186L1.06885 93.1174H104.439L52.7541 63.9186Z</StreamGeometry>
+    </Styles.Resources>
+    
+    <Design.PreviewWith>
+        <Panel
+            Background="Black"
+            Height="500"
+            Width="500">
+            <buttons:VSelectButtonSquareControl
+                HorizontalAlignment="Center"
+                VBorderThickness="4"
+                VCheckedBackground="#43B6DB"
+                VCheckedBorderBrush="#43B6DB"
+                VCheckedIcon="{DynamicResource checked}"
+                VIconForegroundChecked="Black"
+                VIconForegroundUnchecked="White"
+                VIconHeight="100"
+                VIconVerticalAlignment="Center"
+                VIconWidth="100"
+                VText="askjdhas"
+                VTextHorizontalAlignment="Center"
+                VUncheckedBackground="Transparent"
+                VUncheckedBorderBrush="#5DE4FF"
+                VUncheckedIcon="{StaticResource checked}"
+                VUncheckedTextForeground="White"
+                VerticalAlignment="Center" />
+        </Panel>
+    </Design.PreviewWith>
+    <Style Selector="buttons|VSelectButtonSquareControl">
+        <!--  Set Defaults  -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Grid ColumnDefinitions="*" RowDefinitions="* *">
+                    <ToggleButton
+                        Background="{TemplateBinding VUncheckedBackground}"
+                        BorderBrush="{TemplateBinding VUncheckedBorderBrush}"
+                        BorderThickness="{TemplateBinding VBorderThickness}"
+                        CornerRadius="{TemplateBinding VCornerRadius}"
+                        Height="{TemplateBinding VToggleButtonHeight}"
+                        Width="{TemplateBinding VToggleButtonWidth}"
+                        x:Name="Toggle1">
+                        <PathIcon
+                            Data="{TemplateBinding VUncheckedIcon}"
+                            Foreground="{TemplateBinding VIconForegroundUnchecked}"
+                            Height="{TemplateBinding VIconHeight}"
+                            HorizontalAlignment="{TemplateBinding VIconHorizontalAlignment}"
+                            VerticalAlignment="{TemplateBinding VIconVerticalAlignment}"
+                            Width="{TemplateBinding VIconWidth}" />
+                        <!--
+                        -->
+                    </ToggleButton>
+                    <TextBlock
+                        FontFamily="Roboto"
+                        FontSize="18"
+                        FontWeight="700"
+                        Foreground="{TemplateBinding VUncheckedTextForeground}"
+                        Grid.Row="1"
+                        HorizontalAlignment="{TemplateBinding VTextHorizontalAlignment}"
+                        Margin="0,8,0,0"
+                        Text="{TemplateBinding VText}"
+                        VerticalAlignment="{TemplateBinding VTextVerticalAlignment}" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+
+        <!--  Checked state  -->
+        <Style Selector="^ ToggleButton#Toggle1:checked /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{Binding VCheckedBackground, RelativeSource={RelativeSource AncestorType=buttons:VSelectButtonSquareControl}}" />
+            <Setter Property="BorderBrush" Value="{Binding VCheckedBorderBrush, RelativeSource={RelativeSource AncestorType=buttons:VSelectButtonSquareControl}}" />
+            <Setter Property="Content">
+                <Setter.Value>
+                    <Template>
+                        <PathIcon
+                            Data="{Binding VCheckedIcon, RelativeSource={RelativeSource AncestorType=buttons:VSelectButtonSquareControl}}"
+                            Foreground="{Binding VIconForegroundChecked, RelativeSource={RelativeSource AncestorType=buttons:VSelectButtonSquareControl}}"
+                            Height="{Binding VIconHeight, RelativeSource={RelativeSource AncestorType=buttons:VSelectButtonSquareControl}}"
+                            HorizontalAlignment="{Binding VIconHorizontalAlignment, RelativeSource={RelativeSource AncestorType=buttons:VSelectButtonSquareControl}}"
+                            VerticalAlignment="{Binding VIconVerticalAlignment, RelativeSource={RelativeSource AncestorType=buttons:VSelectButtonSquareControl}}"
+                            Width="{Binding VIconWidth, RelativeSource={RelativeSource AncestorType=buttons:VSelectButtonSquareControl}}" />
+                    </Template>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Style>
+
+</Styles>

@@ -1,0 +1,107 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="clr-namespace:AvaloniaFramework.Apresentacao.Cards">
+
+    <Design.PreviewWith>
+
+        <Border Padding="50" Background="#040404">
+            <StackPanel Spacing="10">
+                <controls:SimpleInfoCard
+                    CardIcon="{DynamicResource test}"
+                    DescriptionText="asdasd"
+                    DescriptionTextMargin="0,20,0,0"
+                    IconHeight="93"
+                    IconWidth="134"
+                    SecondText="asdsad" />
+            </StackPanel>
+        </Border>
+    </Design.PreviewWith>
+
+    <Style Selector="controls|SimpleInfoCard">
+        <Setter Property="Width" Value="238" />
+        <Setter Property="Height" Value="338" />
+        <Setter Property="Padding" Value="0,60,0,26" />
+        <Setter Property="Background" Value="#8000576F" />
+        <Setter Property="BorderBrush" Value="#5DE4FF" />
+        <Setter Property="BorderThickness" Value="3" />
+        <Setter Property="CornerRadius" Value="16" />
+
+        <Setter Property="Template">
+            <ControlTemplate>
+
+                <Border
+                    Width="{TemplateBinding Width}"
+                    Height="{TemplateBinding Height}"
+                    Padding="{TemplateBinding Padding}"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}">
+                    <Grid RowDefinitions="*,*">
+
+                        <!--  icone  -->
+                        <PathIcon
+                            Grid.Row="0"
+                            Width="{TemplateBinding IconWidth}"
+                            Height="{TemplateBinding IconHeight}"
+                            HorizontalAlignment="{TemplateBinding IconHorizontalAlignment}"
+                            VerticalAlignment="{TemplateBinding IconVerticalAlignment}"
+                            Data="{TemplateBinding CardIcon}"
+                            Foreground="{TemplateBinding IconForeground}"
+                            IsVisible="{TemplateBinding IsIconVisible}" />
+
+                        <!--  imagem  -->
+                        <Image
+                            Grid.Row="0"
+                            Width="{TemplateBinding ImageWidth}"
+                            Height="{TemplateBinding ImageHeight}"
+                            HorizontalAlignment="{TemplateBinding ImageHorizontalAlignment}"
+                            VerticalAlignment="{TemplateBinding ImageVerticalAlignment}"
+                            IsVisible="{TemplateBinding IsImageVisible}"
+                            Source="{TemplateBinding CardImage}" />
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Margin="{TemplateBinding TextMargin}"
+                            HorizontalAlignment="{TemplateBinding TextHorizontalAlignment}"
+                            VerticalAlignment="{TemplateBinding TextVerticalAlignment}"
+                            TextAlignment="Center"
+                            TextWrapping="Wrap">
+
+                            <!--  first text  -->
+                            <Run
+                                FontSize="{TemplateBinding FirstTextFontSize}"
+                                FontWeight="{TemplateBinding FirstTextFontWeight}"
+                                Foreground="{TemplateBinding FirstTextForeground}"
+                                Text="{TemplateBinding FirstText}" />
+
+                            <LineBreak />
+
+                            <!--  second text  -->
+                            <Run
+                                FontSize="{TemplateBinding SecondTextFontSize}"
+                                FontWeight="{TemplateBinding SecondTextFontWeight}"
+                                Foreground="{TemplateBinding SecondTextForeground}"
+                                Text="{TemplateBinding SecondText}" />
+                        </TextBlock>
+
+                        <!--  label text  -->
+                        <Label
+                            Grid.RowSpan="2"
+                            Margin="{TemplateBinding DescriptionTextMargin}"
+                            HorizontalAlignment="{TemplateBinding DescriptionTextHorizontalAlignment}"
+                            VerticalAlignment="{TemplateBinding DescriptionTextVerticalAlignment}"
+                            Content="{TemplateBinding DescriptionText}"
+                            FontSize="{TemplateBinding DescriptionTextFontSize}"
+                            FontWeight="{TemplateBinding DescriptionTextFontWeight}"
+                            Foreground="{TemplateBinding DescriptionTextForeground}" />
+                    </Grid>
+                </Border>
+
+            </ControlTemplate>
+        </Setter>
+
+    </Style>
+
+</Styles>

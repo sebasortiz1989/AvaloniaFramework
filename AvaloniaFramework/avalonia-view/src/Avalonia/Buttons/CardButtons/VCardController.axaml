@@ -1,0 +1,135 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:cardButtons="clr-namespace:AvaloniaFramework.Apresentacao.Buttons.CardButtons"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <StackPanel
+            Background="Gray"
+            Height="500"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal"
+            Width="500">
+            <cardButtons:VCardController
+                Margin="20"
+                VNormalIcon="{StaticResource test2}"
+                VPressedIcon="{StaticResource test1}"
+                VText="Hello" />
+            <cardButtons:VCardController
+                Margin="20"
+                VNormalImage="avares://AvaloniaFramework/Assets/verion.png"
+                VPressedImage="avares://AvaloniaFramework/Assets/verion.png" />
+            <cardButtons:VCardController
+                CornerRadius="30"
+                Height="200"
+                HorizontalAlignment="Center"
+                Margin="20"
+                VFontSize="16"
+                VFontWeight="600"
+                VIconNormalForeground="#5DE4FF"
+                VIconOneHeight="40"
+                VIconOneWidth="40"
+                VIconPressedForeground="#002459"
+                VNormalBackground="#FF040404"
+                VNormalIcon="{DynamicResource default_icon}"
+                VNormalTextColor="White"
+                VPressedBackground="#5DE4FF"
+                VPressedIcon="{DynamicResource default_icon}"
+                VPressedTextColor="#002459"
+                VText="Test"
+                VerticalAlignment="Center"
+                Width="180" />
+        </StackPanel>
+    </Design.PreviewWith>
+
+    <Styles.Resources>
+        <StreamGeometry x:Key="test1">M78.5 40C78.5 18.8216 61.1784 1.5 40 1.5C18.6633 1.5 1.5 18.8256 1.5 40C1.5 61.3326 18.6674 78.5 40 78.5C61.1744 78.5 78.5 61.3367 78.5 40ZM12.5574 33.5667C15.5765 21.2425 26.7328 11.9 40 11.9C53.1157 11.9 64.2688 21.2385 67.2885 33.5667H54.2365C52.1933 30.6083 48.7291 28.6333 44.9333 28.6333H35.0667C31.0924 28.6333 27.7647 30.6387 25.6388 33.5667H12.5574ZM34.8 55.9716V67.6995C22.9846 65.5222 13.8326 55.9677 12.0845 43.9667H24.5101L34.8 55.9716ZM55.4899 43.9667H67.7613C66.0141 55.9642 56.874 65.5122 45.2 67.6959V55.9716L55.4899 43.9667Z</StreamGeometry>
+        <StreamGeometry x:Key="test2">M37 0C57.35 0 74 16.65 74 37C74 57.5042 57.35 74 37 74C16.4958 74 0 57.5042 0 37C0 16.65 16.4958 0 37 0ZM37 7.4C22.3542 7.4 10.175 18.1917 7.70833 32.0667H23.4333C25.2833 29.1375 28.3667 27.1333 32.0667 27.1333H41.9333C45.4792 27.1333 48.7167 29.1375 50.4125 32.0667H66.1375C63.6708 18.1917 51.4917 7.4 37 7.4ZM7.4 39.4667C8.63333 53.4958 19.425 64.75 33.3 66.4458V52.4167L22.2 39.4667H7.4ZM40.7 66.4458C54.4208 64.75 65.2125 53.4958 66.4458 39.4667H51.8L40.7 52.4167V66.4458Z</StreamGeometry>
+    </Styles.Resources>
+
+    <Style Selector="cardButtons|VCardController">
+        <Setter Property="Width" Value="{Binding Width, RelativeSource={RelativeSource AncestorType=cardButtons:VCardController}}" />
+        <Setter Property="Height" Value="{Binding Height, RelativeSource={RelativeSource AncestorType=cardButtons:VCardController}}" />
+        <Setter Property="Margin" Value="{Binding Margin, RelativeSource={RelativeSource AncestorType=cardButtons:VCardController}}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Button
+                    Background="#5DE4FF"
+                    Command="{TemplateBinding Command}"
+                    CommandParameter="{TemplateBinding CommandParameter}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    HorizontalAlignment="Stretch"
+                    Name="PART_Button"
+                    Padding="-1,-1,-1,3"
+                    VerticalAlignment="Stretch">
+                    <Border
+                        Background="{TemplateBinding VNormalBackground}"
+                        BorderBrush="{TemplateBinding VNormalBorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Margin="0"
+                        Name="PART_BorderBackground">
+                        <Grid
+                            HorizontalAlignment="Stretch"
+                            IsHitTestVisible="False"
+                            RowDefinitions="0.75*, 0.25*"
+                            VerticalAlignment="Stretch">
+                            <PathIcon
+                                Data="{TemplateBinding VNormalIcon}"
+                                Foreground="{TemplateBinding VIconNormalForeground}"
+                                Grid.Row="0"
+                                Height="{TemplateBinding VIconOneHeight}"
+                                HorizontalAlignment="{TemplateBinding VIconOneHorizontalAlignment}"
+                                IsHitTestVisible="False"
+                                Margin="{TemplateBinding VIconOneMargin}"
+                                Name="PART_IconOne"
+                                VerticalAlignment="{TemplateBinding VIconOneVerticalAlignment}"
+                                Width="{TemplateBinding VIconOneWidth}" />
+                            <Image
+                                Grid.Row="0"
+                                Height="{TemplateBinding VImageWidth}"
+                                HorizontalAlignment="Center"
+                                Name="PART_Image"
+                                Source="{TemplateBinding VNormalImage}"
+                                VerticalAlignment="Center"
+                                Width="{TemplateBinding VImageHeight}" />
+                            <TextBlock
+                                FontFamily="Roboto"
+                                FontSize="{TemplateBinding VFontSize}"
+                                FontWeight="{TemplateBinding VFontWeight}"
+                                Foreground="{TemplateBinding VNormalTextColor}"
+                                Grid.Row="1"
+                                HorizontalAlignment="Center"
+                                IsHitTestVisible="False"
+                                Name="PART_MainText"
+                                Text="{TemplateBinding VText}"
+                                TextWrapping="Wrap"
+                                VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                </Button>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <Style Selector="cardButtons|VCardController /template/ Button#PART_Button:pressed">
+        <Setter Property="Background" Value="{Binding VPressedBackground, RelativeSource={RelativeSource AncestorType=cardButtons:VCardController}}" />
+    </Style>
+
+    <Style Selector="cardButtons|VCardController /template/ Button#PART_Button:pressed PathIcon#PART_IconOne">
+        <Setter Property="Foreground" Value="{Binding VIconPressedForeground, RelativeSource={RelativeSource AncestorType=cardButtons:VCardController}}" />
+        <Setter Property="Data" Value="{Binding VPressedIcon, RelativeSource={RelativeSource AncestorType=cardButtons:VCardController}}" />
+    </Style>
+
+    <Style Selector="cardButtons|VCardController /template/ Button#PART_Button:pressed Image#PART_Image">
+        <Setter Property="Source" Value="{Binding VPressedImage, RelativeSource={RelativeSource AncestorType=cardButtons:VCardController}}" />
+    </Style>
+
+    <Style Selector="cardButtons|VCardController /template/ Button#PART_Button:pressed Border#PART_BorderBackground">
+        <Setter Property="Background" Value="{Binding VPressedBackground, RelativeSource={RelativeSource AncestorType=cardButtons:VCardController}}" />
+        <Setter Property="BorderBrush" Value="{Binding VPressedBorderBrush, RelativeSource={RelativeSource AncestorType=cardButtons:VCardController}}" />
+    </Style>
+
+    <Style Selector="cardButtons|VCardController /template/ Button#PART_Button:pressed TextBlock#PART_MainText">
+        <Setter Property="Foreground" Value="{Binding VPressedTextColor, RelativeSource={RelativeSource AncestorType=cardButtons:VCardController}}" />
+    </Style>
+</Styles>

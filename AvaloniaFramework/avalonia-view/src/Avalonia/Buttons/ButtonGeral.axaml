@@ -1,0 +1,104 @@
+﻿<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:buttons1="clr-namespace:AvaloniaFramework.Apresentacao.Buttons">
+    <Design.PreviewWith>
+        <buttons1:ButtonGeral />
+    </Design.PreviewWith>
+
+    <Style Selector="buttons1|ButtonGeral">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Button
+                        Height="{TemplateBinding Height}"
+                        Width="{TemplateBinding Width}"
+                        Background="{TemplateBinding Background}"
+                        Margin="{TemplateBinding Margin}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        Command="{TemplateBinding Command}"
+                        CommandParameter="{TemplateBinding CommandParameter}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                        HorizontalAlignment="{TemplateBinding HorizontalAlignment}">
+                        <TextBlock
+                            Text="{TemplateBinding Text}"
+                            FontSize="{TemplateBinding TextSize}"
+                            TextAlignment="Center"
+                            TextWrapping="WrapWithOverflow"
+                            Foreground="Black"
+                            Background="Transparent"
+                            FontWeight="Bold"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Stretch" />
+                        <Button.Styles>
+                            <Style Selector="Button">
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="BorderBrush" Value="Black" />
+                            </Style>
+                            <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                <Setter Property="Background" Value="WhiteSmoke" />
+                                <Setter Property="BorderBrush" Value="Black" />
+                            </Style>
+                            <Style Selector="Button:pressed /template/ ContentPresenter">
+                                <Setter Property="Background" Value="DarkOrange" />
+                                <Setter Property="BorderBrush" Value="Black" />
+                            </Style>
+                        </Button.Styles>
+                    </Button>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="buttons1|ButtonGeral[ButtonGeralContent=LeftImageAndText]">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Button
+                        Command="{TemplateBinding Command}"
+                        CommandParameter="{TemplateBinding CommandParameter}"
+                        Height="{TemplateBinding Height}"
+                        Width="{TemplateBinding Width}"
+                        Margin="{TemplateBinding Margin}"
+                        HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                        VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        Background="{TemplateBinding Background}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                        VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                        CornerRadius="{TemplateBinding CornerRadius}">
+                        <StackPanel
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch"
+                            Orientation="Horizontal">
+                            <Image
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Source="{TemplateBinding SourceImageButton}"
+                                Width="{TemplateBinding ImageWidth}"
+                                Height="{TemplateBinding ImageHeight}"
+                                Margin="{TemplateBinding ImageMargin}"/>					
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center"
+                                Foreground="{TemplateBinding TextForeground}"
+                                FontSize="{TemplateBinding TextSize}"
+                                Text="{TemplateBinding Text}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                        <Button.Styles>
+                            <Style Selector="Button">
+                                <Setter Property="Background" Value="Transparent" />
+                            </Style>
+                            <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                <Setter Property="Background" Value="#665CC4E6" />
+                                <Setter Property="BorderBrush" Value="#665CC4E6" />
+                            </Style>
+                            <Style Selector="Button:pressed /template/ ContentPresenter">
+                                <Setter Property="Background" Value="#665CC4E6" />
+                                <Setter Property="BorderBrush" Value="#665CC4E6" />
+                            </Style>
+                        </Button.Styles>
+                    </Button>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+    
+</Styles>

@@ -1,0 +1,166 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:buttons="clr-namespace:AvaloniaFramework.Apresentacao.Buttons"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <StackPanel Background="Black">
+            <buttons:VCustomButton
+                Background="Black"
+                BorderBrush="#43B6DB"
+                BorderThickness="2"
+                CornerRadius="10"
+                Height="282"
+                Margin="2"
+                VFontSize="32"
+                VIconHeight="80"
+                VIconNormalForeground="Yellow"
+                VIconPressedForeground="Blue"
+                VIconWidth="80"
+                VNormalIcon="{DynamicResource default_icon}"
+                VNormalTextForeground="White"
+                VPointeroverBackground="Green"
+                VPointoverTextForeground="Chocolate"
+                VPressedBackground="#43B6DB"
+                VPressedBorderBrush="#43B6DB"
+                VPressedIcon="{DynamicResource default_icon}"
+                VPressedTextForeground="Red"
+                VText="Configuracao Do Motor"
+                VTextMargin="0, 0, 0, 20"
+                VTextVerticalAlignment="Bottom"
+                Width="248" />
+
+            <buttons:VCustomButton
+                Background="#323232"
+                CornerRadius="5"
+                Margin="16,16,16,0"
+                VBorderThickness="0"
+                VFontSize="28"
+                VNormalBackground="#323232"
+                VNormalTextForeground="White"
+                VPointeroverBackground="#43B6DB"
+                VPointoverTextForeground="Black"
+                VPressedBackground="#43B6DB"
+                VPressedTextForeground="Black"
+                VText="Example Custom Radio Button"
+                VTextHorizontalAlignment="Center"
+                VTextVerticalAlignment="Center"
+                Width="370" />
+        </StackPanel>
+    </Design.PreviewWith>
+
+    <Styles.Resources>
+        <StreamGeometry x:Key="default_icon">M7 12C7.55228 12 8 11.5523 8 11C8 10.4477 7.55228 10 7 10C6.44772 10 6 10.4477 6 11C6 11.5523 6.44772 12 7 12Z M11 11C11 11.5523 10.5523 12 10 12C9.44772 12 9 11.5523 9 11C9 10.4477 9.44772 10 10 10C10.5523 10 11 10.4477 11 11Z M13 12C13.5523 12 14 11.5523 14 11C14 10.4477 13.5523 10 13 10C12.4477 10 12 10.4477 12 11C12 11.5523 12.4477 12 13 12Z M3 5.5C3 4.11929 4.11929 3 5.5 3H14.5C15.8807 3 17 4.11929 17 5.5V14.5C17 15.8807 15.8807 17 14.5 17H5.5C4.11929 17 3 15.8807 3 14.5V5.5ZM5.5 4C4.67157 4 4 4.67157 4 5.5V14.5C4 15.3284 4.67157 16 5.5 16H14.5C15.3284 16 16 15.3284 16 14.5V7H9.5C8.67157 7 8 6.32843 8 5.5V4H5.5ZM16 5.5C16 4.67157 15.3284 4 14.5 4H9V5.5C9 5.77614 9.22386 6 9.5 6H16V5.5Z</StreamGeometry>
+    </Styles.Resources>
+
+    <Style Selector="buttons|VCustomButton">
+        <!--  Set Defaults  -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Button
+                    Background="{TemplateBinding VNormalBackground}"
+                    Command="{TemplateBinding Command}"
+                    CommandParameter="{TemplateBinding CommandParameter}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Height="{TemplateBinding Height}"
+                    HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                    IsHitTestVisible="True"
+                    Margin="{TemplateBinding Margin}"
+                    Name="CustomNormalRadioButton"
+                    VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                    Width="{TemplateBinding Width}">
+                    <Border
+                        Background="{TemplateBinding VNormalBackground}"
+                        BorderBrush="{TemplateBinding VNormalBorderBrush}"
+                        BorderThickness="{TemplateBinding VBorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        HorizontalAlignment="Stretch"
+                        Name="PART_InterBorder"
+                        Padding="{TemplateBinding Padding}"
+                        VerticalAlignment="Stretch">
+                        <Grid
+                            HorizontalAlignment="Stretch"
+                            RowDefinitions="0.75*, 0.25*"
+                            VerticalAlignment="Stretch">
+                            <PathIcon
+                                Data="{TemplateBinding VNormalIcon}"
+                                Foreground="{TemplateBinding VIconNormalForeground}"
+                                Grid.Row="0"
+                                Height="{TemplateBinding VIconHeight}"
+                                HorizontalAlignment="{TemplateBinding VIconHorizontalAlignment}"
+                                Margin="{TemplateBinding VIconMargin}"
+                                Name="PART_InterIconOne"
+                                VerticalAlignment="{TemplateBinding VIconVerticalAlignment}"
+                                Width="{TemplateBinding VIconWidth}" />
+
+                            <Image
+                                Grid.Row="0"
+                                Height="{TemplateBinding VImageHeight}"
+                                HorizontalAlignment="{TemplateBinding VImageHorizontalAlignment}"
+                                Margin="{TemplateBinding VImageMargin}"
+                                Name="PART_InterImage"
+                                Source="{TemplateBinding VNormalImage}"
+                                VerticalAlignment="{TemplateBinding VImageVerticalAlignment}"
+                                Width="{TemplateBinding VImageHeight}" />
+
+                            <TextBlock
+                                FontFamily="Roboto"
+                                FontSize="{TemplateBinding VFontSize}"
+                                FontWeight="{TemplateBinding VFontWeight}"
+                                Foreground="{TemplateBinding VNormalTextForeground}"
+                                Grid.Row="0"
+                                Grid.RowSpan="2"
+                                HorizontalAlignment="{TemplateBinding VTextHorizontalAlignment}"
+                                Margin="{TemplateBinding VTextMargin}"
+                                Name="PART_InterMainText"
+                                Text="{TemplateBinding VText}"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                VerticalAlignment="{TemplateBinding VTextVerticalAlignment}" />
+                        </Grid>
+                    </Border>
+                </Button>
+            </ControlTemplate>
+        </Setter>
+
+        <!--  POINTEROVER STATE  -->
+        <Style Selector="^buttons|VCustomButton:pointerover">
+            <Style Selector="^ Border#PART_InterBorder">
+                <Setter Property="Background" Value="{Binding VPointeroverBackground, RelativeSource={RelativeSource AncestorType=buttons:VCustomButton}}" />
+            </Style>
+
+            <Style Selector="^ TextBlock#PART_InterMainText">
+                <Setter Property="Foreground" Value="{Binding VPointoverTextForeground, RelativeSource={RelativeSource AncestorType=buttons:VCustomButton}}" />
+            </Style>
+
+            <Style Selector="^ PathIcon#PART_InterIconOne">
+                <Setter Property="Foreground" Value="{Binding VPointeroverIconForeground, RelativeSource={RelativeSource AncestorType=buttons:VCustomButton}}" />
+            </Style>
+
+            <Style Selector="^ Image#PART_InterImage">
+                <Setter Property="Source" Value="{Binding VPressedImage, RelativeSource={RelativeSource AncestorType=buttons:VCustomButton}}" />
+            </Style>
+        </Style>
+
+        <!--  PRESSED STATE  -->
+        <Style Selector="^buttons|VCustomButton Button#CustomNormalRadioButton:pressed">
+            <Style Selector="^ Border#PART_InterBorder">
+                <Setter Property="Background" Value="{Binding VPressedBackground, RelativeSource={RelativeSource AncestorType=buttons:VCustomButton}}" />
+                <Setter Property="BorderBrush" Value="{Binding VPressedBorderBrush, RelativeSource={RelativeSource AncestorType=buttons:VCustomButton}}" />
+            </Style>
+            <Style Selector="^ PathIcon#PART_InterIconOne">
+                <Setter Property="Data" Value="{Binding VPressedIcon, RelativeSource={RelativeSource AncestorType=buttons:VCustomButton}}" />
+                <Setter Property="Foreground" Value="{Binding VIconPressedForeground, RelativeSource={RelativeSource AncestorType=buttons:VCustomButton}}" />
+            </Style>
+
+            <Style Selector="^ TextBlock#PART_InterMainText">
+                <Setter Property="Foreground" Value="{Binding VPressedTextForeground, RelativeSource={RelativeSource AncestorType=buttons:VCustomButton}}" />
+            </Style>
+
+            <Style Selector="^ Image#PART_InterImage">
+                <Setter Property="Source" Value="{Binding VPressedImage, RelativeSource={RelativeSource AncestorType=buttons:VCustomButton}}" />
+            </Style>
+        </Style>
+
+    </Style>
+
+</Styles>

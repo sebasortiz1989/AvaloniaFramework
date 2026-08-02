@@ -1,0 +1,127 @@
+﻿<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:textFields="clr-namespace:AvaloniaFramework.Apresentacao.Inputs.TextFields"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <textFields:TextField />
+    </Design.PreviewWith>
+    <!--    -->
+    <!-- <Style Selector="TextBox#TextBoxField:pressed  /template/ ContentPresenter#PART_ContentPresenter"> -->
+    <!--     <Setter Property="Background" Value="{x:Null}" /> -->
+    <!--     <Setter Property="BorderBrush" Value="{x:Null}" /> -->
+    <!--     <Setter Property="Foreground" Value="{x:Null}" /> -->
+    <!-- </Style> -->
+
+    <!-- <Style Selector="TextBox#TextBoxField:pointerover"> -->
+    <!--     <Setter Property="Background" Value="{x:Null}" /> -->
+    <!--     <Setter Property="BorderBrush" Value="{x:Null}" /> -->
+    <!--     <Setter Property="Foreground" Value="{x:Null}" /> -->
+    <!-- </Style> -->
+
+    <Style Selector="textFields|TextField">
+        <!--  Set Defaults  -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    Background="Transparent"
+                    BorderBrush="#9dfdff"
+                    BorderThickness="2"
+                    CornerRadius="100"
+                    MinHeight="86"
+                    MinWidth="150">
+                    <StackPanel Orientation="Horizontal">
+                        <PathIcon
+                            Data="{TemplateBinding SvgIconLeft}"
+                            Foreground="#9dfdff"
+                            HorizontalAlignment="Center"
+                            Margin="20,0,0,0"
+                            VerticalAlignment="Center"
+                            x:Name="IconImage1" />
+
+                        <TextBox
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
+                            CaretBrush="#27CCFF"
+                            FontSize="32"
+                            Foreground="White"
+                            HorizontalAlignment="Center"
+                            HorizontalContentAlignment="Center"
+                            IsHitTestVisible="{TemplateBinding IsHitTestVisible}"
+                            Margin="10,0,10,0"
+                            SelectionBrush="#81c5f0"
+                            SelectionForegroundBrush="#badefe"
+                            Text="{TemplateBinding Text}"
+                            VerticalAlignment="Center"
+                            VerticalContentAlignment="Center"
+                            x:Name="TextBoxField" />
+
+                        <PathIcon
+                            Data="{TemplateBinding SvgIconRight}"
+                            Foreground="#9dfdff"
+                            HorizontalAlignment="Center"
+                            Margin="0,0,20,0"
+                            VerticalAlignment="Center"
+                            x:Name="IconImage2" />
+                    </StackPanel>
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- <Style Selector="textFields|TextField[IsPointerOver=True]"> -->
+    <!--  ~1~ Set Defaults @1@  -->
+    <!--     <Setter Property="Template"> -->
+    <!--         <ControlTemplate> -->
+    <!--             <Border BorderBrush="#9dfdff" BorderThickness="2" Background="Transparent" CornerRadius="100"> -->
+    <!--  <TextBox  -->
+    <!--  x:Name="TextBoxField"  -->
+    <!--  MinWidth="150"  -->
+    <!--  Background="Transparent"  -->
+    <!--  Theme=""  -->
+    <!--  CaretBrush="#27CCFF"  -->
+    <!--  SelectionForegroundBrush="#badefe"  -->
+    <!--  SelectionBrush="#81c5f0"  -->
+    <!--  Text="{TemplateBinding Text}"  -->
+    <!--  FontSize="32"  -->
+    <!--  Height="86"  -->
+    <!--  Foreground="White"  -->
+    <!--  BorderThickness="0"  -->
+    <!--  BorderBrush="Transparent"  -->
+    <!--  HorizontalContentAlignment="Center"  -->
+    <!--  VerticalContentAlignment="Center"/>  -->
+    <!--             </Border> -->
+    <!--    -->
+    <!--         </ControlTemplate> -->
+    <!--     </Setter> -->
+    <!-- </Style> -->
+    <!--    -->
+    <!-- <Style Selector="textFields|TextField[IsPointerOver=False]"> -->
+    <!--  ~1~ Set Defaults @1@  -->
+    <!--     <Setter Property="Template"> -->
+    <!--         <ControlTemplate> -->
+    <!--             <Border BorderBrush="#9dfdff" BorderThickness="2" Background="Transparent" CornerRadius="100"> -->
+    <!--  <TextBox  -->
+    <!--  x:Name="TextBoxField"  -->
+    <!--  MinWidth="150"  -->
+    <!--  Background="Transparent"  -->
+    <!--  Theme=""  -->
+    <!--  CaretBrush="#27CCFF"  -->
+    <!--  SelectionForegroundBrush="#badefe"  -->
+    <!--  SelectionBrush="#81c5f0"  -->
+    <!--  Text="{TemplateBinding Text}"  -->
+    <!--  FontSize="32"  -->
+    <!--  Height="86"  -->
+    <!--  Foreground="White"  -->
+    <!--  BorderThickness="0"  -->
+    <!--  BorderBrush="Transparent"  -->
+    <!--  HorizontalContentAlignment="Center"  -->
+    <!--  VerticalContentAlignment="Center"/>  -->
+    <!--             </Border> -->
+    <!--    -->
+    <!--         </ControlTemplate> -->
+    <!--     </Setter> -->
+    <!-- </Style> -->
+</Styles>
+
+

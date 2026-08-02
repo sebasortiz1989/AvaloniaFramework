@@ -1,0 +1,40 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cards="clr-namespace:AvaloniaFramework.Apresentacao.Cards">
+    <Design.PreviewWith>
+        <cards:InfoCard />
+    </Design.PreviewWith>
+
+    <Style Selector="cards|InfoCard">
+        <!--  Set Defaults  -->
+        <Setter Property="Template">
+            <ControlTemplate>
+                <StackPanel Width="{TemplateBinding CardWidth}">
+                    <Grid RowDefinitions="*, *">
+                        <Border
+                            Grid.Row="0"
+                            Background="{TemplateBinding CardBackgroundColor}"
+                            CornerRadius="8 8 0 0">
+                            <TextBlock
+                                Padding="10,4,10,4"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                FontFamily="Roboto"
+                                FontSize="{TemplateBinding CardTextTitleSize}"
+                                Foreground="{TemplateBinding TextColor}"
+                                Text="{TemplateBinding CardTitle}" />
+                        </Border>
+                        <Border
+                            Grid.Row="1"
+                            BorderBrush="{TemplateBinding CardBackgroundColor}"
+                            BorderThickness="1,1,1,1"
+                            CornerRadius="0 0 8 8">
+                            <ContentPresenter Content="{TemplateBinding Content}" />
+                        </Border>
+                    </Grid>
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</Styles>

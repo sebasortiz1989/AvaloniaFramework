@@ -1,0 +1,352 @@
+﻿<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:controls="using:AvaloniaFramework.Apresentacao.Buttons"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Styles.Resources>
+        <StreamGeometry x:Key="default_icon">
+            M7 12C7.55228 12 8 11.5523 8 11C8 10.4477 7.55228 10 7 10C6.44772 10 6 10.4477 6 11C6 11.5523 6.44772 12 7 12Z M11 11C11 11.5523 10.5523 12 10 12C9.44772 12 9 11.5523 9 11C9 10.4477 9.44772 10 10 10C10.5523 10 11 10.4477 11 11Z M13 12C13.5523 12 14 11.5523 14 11C14 10.4477 13.5523 10 13 10C12.4477 10 12 10.4477 12 11C12 11.5523 12.4477 12 13 12Z M3 5.5C3 4.11929 4.11929 3 5.5 3H14.5C15.8807 3 17 4.11929 17 5.5V14.5C17 15.8807 15.8807 17 14.5 17H5.5C4.11929 17 3 15.8807 3 14.5V5.5ZM5.5 4C4.67157 4 4 4.67157 4 5.5V14.5C4 15.3284 4.67157 16 5.5 16H14.5C15.3284 16 16 15.3284 16 14.5V7H9.5C8.67157 7 8 6.32843 8 5.5V4H5.5ZM16 5.5C16 4.67157 15.3284 4 14.5 4H9V5.5C9 5.77614 9.22386 6 9.5 6H16V5.5Z
+        </StreamGeometry>
+    </Styles.Resources>
+
+    <Design.PreviewWith>
+        <Panel
+            Background="Black"
+            Height="500"
+            Width="500">
+            <controls:VToggleButton
+                Height="100"
+                HorizontalAlignment="Right"
+                Margin="0,0,70,70"
+                VButtonEffect="Underline"
+                VFontSize="16"
+                VFontWeight="600"
+                VIconNormalForeground="#000000"
+                VIconOneHeight="20"
+                VIconOneHorizontalAlignment="Left"
+                VIconOneMargin="0,0,10,0"
+                VIconOneVerticalAlignment="Bottom"
+                VIconOneWidth="20"
+                VIconPressedForeground="Red"
+                VIconTwoHeight="20"
+                VIconTwoHorizontalAlignment="Right"
+                VIconTwoMargin="10,0,0,0"
+                VIconTwoVerticalAlignment="Top"
+                VIconTwoWidth="20"
+                VImageOneHeight="32"
+                VImageOneHorizontalAlignment="Left"
+                VImageOneVerticalAlignment="Top"
+                VImageOneWidth="32"
+                VNormalBackground="#5DE4FF"
+                VNormalForeground="#000000"
+                VNormalIconOne="{DynamicResource default_icon}"
+                VNormalIconTwo="{DynamicResource default_icon}"
+                VNormalImageOne="avares://AvaloniaFramework/Assets/battery.png"
+                VPadding="6"
+                VPressedBackground="Orange"
+                VPressedForeground="Red"
+                VPressedIconOne="{DynamicResource default_icon}"
+                VPressedIconTwo="{DynamicResource default_icon}"
+                VPressedImageOne="avares://AvaloniaFramework/Assets/battery.png"
+                VTextChecked="Test"
+                VTextHorizontalAlignment="Center"
+                VTextVerticalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Width="180" />
+        </Panel>
+    </Design.PreviewWith>
+
+    <Style Selector="controls|VToggleButton">
+        <Setter Property="Width" Value="{Binding Width, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}" />
+        <Setter Property="Height" Value="{Binding Height, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}" />
+        <Setter Property="Margin" Value="{Binding Margin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}" />
+        <Setter Property="IsChecked" Value="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <ToggleButton
+                    Background="{TemplateBinding VNormalBackground}"
+                    BorderBrush="{TemplateBinding VNormalBorderBrush}"
+                    BorderThickness="{TemplateBinding VBorderThickness}"
+                    Command="{TemplateBinding Command}"
+                    CommandParameter="{TemplateBinding CommandParameter}"
+                    CornerRadius="{TemplateBinding VCornerRadius}"
+                    Foreground="{TemplateBinding VNormalForeground}"
+                    HorizontalAlignment="Stretch"
+                    IsChecked="{TemplateBinding IsChecked,
+                                                Mode=TwoWay}"
+                    IsEnabled="{TemplateBinding IsEnabled}"
+                    Padding="{TemplateBinding VPadding}"
+                    VerticalAlignment="Stretch"
+                    x:Name="TogglePrincipal">
+                    <Grid
+                        HorizontalAlignment="Stretch"
+                        IsHitTestVisible="False"
+                        VerticalAlignment="Stretch">
+                        <PathIcon
+                            Data="{TemplateBinding VNormalIconOne}"
+                            Foreground="{TemplateBinding VIconNormalForeground}"
+                            Height="{TemplateBinding VIconOneHeight}"
+                            HorizontalAlignment="{TemplateBinding VIconOneHorizontalAlignment}"
+                            IsHitTestVisible="False"
+                            Margin="{TemplateBinding VIconOneMargin}"
+                            VerticalAlignment="{TemplateBinding VIconOneVerticalAlignment}"
+                            Width="{TemplateBinding VIconOneWidth}"
+                            x:Name="PART_IconOne" />
+                        <Image
+                            Height="{TemplateBinding VImageOneHeight}"
+                            HorizontalAlignment="{TemplateBinding VImageOneHorizontalAlignment}"
+                            IsHitTestVisible="False"
+                            Margin="{TemplateBinding VImageOneMargin}"
+                            Source="{TemplateBinding VNormalImageOne}"
+                            VerticalAlignment="{TemplateBinding VImageOneVerticalAlignment}"
+                            Width="{TemplateBinding VImageOneWidth}"
+                            x:Name="PART_ImageOne" />
+                        <TextBlock
+                            FontFamily="Roboto"
+                            FontSize="{TemplateBinding VFontSize}"
+                            FontWeight="{TemplateBinding VFontWeight}"
+                            Foreground="{TemplateBinding VNormalForeground}"
+                            HorizontalAlignment="{TemplateBinding VTextHorizontalAlignment}"
+                            IsHitTestVisible="False"
+                            Margin="{TemplateBinding VTextMargin}"
+                            Text="{TemplateBinding VTextUnchecked}"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="{TemplateBinding VTextVerticalAlignment}"
+                            x:Name="PART_MainText" />
+                        <Image
+                            Height="{TemplateBinding VImageTwoHeight}"
+                            HorizontalAlignment="{TemplateBinding VImageTwoHorizontalAlignment}"
+                            IsHitTestVisible="False"
+                            Margin="{TemplateBinding VImageTwoMargin}"
+                            Source="{TemplateBinding VNormalImageTwo}"
+                            VerticalAlignment="{TemplateBinding VImageTwoVerticalAlignment}"
+                            Width="{TemplateBinding VImageTwoWidth}"
+                            x:Name="PART_ImageTwo" />
+                        <PathIcon
+                            Data="{TemplateBinding VNormalIconTwo}"
+                            Foreground="{TemplateBinding VIconNormalForeground}"
+                            Height="{TemplateBinding VIconTwoHeight}"
+                            HorizontalAlignment="{TemplateBinding VIconTwoHorizontalAlignment}"
+                            IsHitTestVisible="False"
+                            Margin="{TemplateBinding VIconTwoMargin}"
+                            VerticalAlignment="{TemplateBinding VIconTwoVerticalAlignment}"
+                            Width="{TemplateBinding VIconTwoWidth}"
+                            x:Name="PART_IconTwo" />
+                    </Grid>
+                </ToggleButton>
+            </ControlTemplate>
+        </Setter>
+
+        <!--  checked style  -->
+        <Style Selector="^ &gt; ToggleButton#TogglePrincipal:checked /template/ ContentPresenter#PART_ContentPresenter, ^ &gt; ToggleButton#TogglePrincipal:pressed /template/ ContentPresenter#PART_ContentPresenter, ^ &gt; Button#TogglePrincipal:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{Binding VPressedBackground, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}" />
+            <Setter Property="BorderBrush" Value="{Binding VPressedBorderBrush, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}" />
+            <Setter Property="Content">
+                <Setter.Value>
+                    <Template>
+                        <Grid
+                            HorizontalAlignment="Stretch"
+                            IsHitTestVisible="False"
+                            VerticalAlignment="Stretch">
+                            <PathIcon
+                                Data="{Binding VPressedIconOne, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Foreground="{Binding VIconPressedForeground, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Height="{Binding VIconOneHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                HorizontalAlignment="{Binding VIconOneHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                IsHitTestVisible="False"
+                                Margin="{Binding VIconOneMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                VerticalAlignment="{Binding VIconOneVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Width="{Binding VIconOneWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                x:Name="PART_IconOne" />
+                            <Image
+                                Height="{Binding VImageOneHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                HorizontalAlignment="{Binding VImageOneHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                IsHitTestVisible="False"
+                                Margin="{Binding VImageOneMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Source="{Binding VPressedImageOne, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                VerticalAlignment="{Binding VImageOneVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Width="{Binding VImageOneWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                x:Name="PART_ImageOne" />
+                            <TextBlock
+                                FontFamily="Roboto"
+                                FontSize="{Binding VFontSize, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                FontWeight="{Binding VFontWeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Foreground="{Binding VPressedForeground, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                HorizontalAlignment="{Binding VTextHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                IsHitTestVisible="False"
+                                Margin="{Binding VTextMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Text="{Binding VTextChecked, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                TextWrapping="Wrap"
+                                VerticalAlignment="{Binding VTextVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                x:Name="PART_MainText" />
+                            <Image
+                                Height="{Binding VImageTwoHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                HorizontalAlignment="{Binding VImageTwoHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                IsHitTestVisible="False"
+                                Margin="{Binding VImageTwoMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Source="{Binding VPressedImageTwo, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                VerticalAlignment="{Binding VImageTwoVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Width="{Binding VImageTwoWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                x:Name="PART_ImageTwo" />
+                            <PathIcon
+                                Data="{Binding VPressedIconTwo, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Foreground="{Binding VIconPressedForeground, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Height="{Binding VIconTwoHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                HorizontalAlignment="{Binding VIconTwoHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                IsHitTestVisible="False"
+                                Margin="{Binding VIconTwoMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                VerticalAlignment="{Binding VIconTwoVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Width="{Binding VIconTwoWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                x:Name="PART_IconTwo" />
+                        </Grid>
+                    </Template>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  checked with underline style  -->
+        <Style Selector="^[VButtonEffect=Underline] &gt; ToggleButton#TogglePrincipal:checked /template/ ContentPresenter#PART_ContentPresenter, ^[VButtonEffect=Underline] &gt; ToggleButton#TogglePrincipal:pressed /template/ ContentPresenter#PART_ContentPresenter, ^[VButtonEffect=Underline] &gt; ToggleButton#TogglePrincipal:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{Binding VPressedBackground, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}" />
+            <Setter Property="BorderBrush" Value="{Binding VPressedBorderBrush, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}" />
+            <Setter Property="Content">
+                <Setter.Value>
+                    <Template>
+                        <Panel
+                            Background="Transparent"
+                            HorizontalAlignment="Stretch"
+                            IsHitTestVisible="False"
+                            VerticalAlignment="Stretch">
+                            <Border
+                                BorderBrush="#5DE4FF"
+                                BorderThickness="0,0,0,2"
+                                HorizontalAlignment="Stretch"
+                                IsHitTestVisible="False"
+                                VerticalAlignment="Bottom" />
+                            <Grid
+                                HorizontalAlignment="Stretch"
+                                IsHitTestVisible="False"
+                                VerticalAlignment="Stretch">
+                                <PathIcon
+                                    Data="{Binding VPressedIconOne, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Foreground="{Binding VIconPressedForeground, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Height="{Binding VIconOneHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    HorizontalAlignment="{Binding VIconOneHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    IsHitTestVisible="False"
+                                    Margin="{Binding VIconOneMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    VerticalAlignment="{Binding VIconOneVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Width="{Binding VIconOneWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    x:Name="PART_IconOne" />
+                                <Image
+                                    Height="{Binding VImageOneHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    HorizontalAlignment="{Binding VImageOneHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    IsHitTestVisible="False"
+                                    Margin="{Binding VImageOneMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Source="{Binding VPressedImageOne, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    VerticalAlignment="{Binding VImageOneVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Width="{Binding VImageOneWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    x:Name="PART_ImageOne" />
+                                <TextBlock
+                                    FontFamily="Roboto"
+                                    FontSize="{Binding VFontSize, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    FontWeight="{Binding VFontWeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Foreground="{Binding VPressedForeground, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    HorizontalAlignment="{Binding VTextHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    IsHitTestVisible="False"
+                                    Margin="{Binding VTextMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Text="{Binding VTextChecked, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    TextWrapping="Wrap"
+                                    VerticalAlignment="{Binding VTextVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    x:Name="PART_MainText" />
+                                <Image
+                                    Height="{Binding VImageTwoHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    HorizontalAlignment="{Binding VImageTwoHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    IsHitTestVisible="False"
+                                    Margin="{Binding VImageTwoMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Source="{Binding VPressedImageTwo, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    VerticalAlignment="{Binding VImageTwoVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Width="{Binding VImageTwoWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    x:Name="PART_ImageTwo" />
+                                <PathIcon
+                                    Data="{Binding VPressedIconTwo, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Foreground="{Binding VIconPressedForeground, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Height="{Binding VIconTwoHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    HorizontalAlignment="{Binding VIconTwoHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    IsHitTestVisible="False"
+                                    Margin="{Binding VIconTwoMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    VerticalAlignment="{Binding VIconTwoVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    Width="{Binding VIconTwoWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                    x:Name="PART_IconTwo" />
+                            </Grid>
+                        </Panel>
+                    </Template>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!--  disabled style  -->
+        <Style Selector="^ &gt; ToggleButton#TogglePrincipal:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#335DE4FF" />
+            <Setter Property="BorderBrush" Value="#335DE4FF" />
+            <Setter Property="Content">
+                <Setter.Value>
+                    <Template>
+                        <Grid
+                            HorizontalAlignment="Stretch"
+                            IsHitTestVisible="False"
+                            VerticalAlignment="Stretch">
+                            <PathIcon
+                                Data="{Binding VNormalIconOne, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Foreground="#A7B0B3"
+                                Height="{Binding VIconOneHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                HorizontalAlignment="{Binding VIconOneHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                IsHitTestVisible="False"
+                                Margin="{Binding VIconOneMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                VerticalAlignment="{Binding VIconOneVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Width="{Binding VIconOneWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                x:Name="PART_IconOne" />
+                            <Image
+                                Height="{Binding VImageOneHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                HorizontalAlignment="{Binding VImageOneHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                IsHitTestVisible="False"
+                                Margin="{Binding VImageOneMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Source="{Binding VNormalImageOne, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                VerticalAlignment="{Binding VImageOneVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Width="{Binding VImageOneWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                x:Name="PART_ImageOne" />
+                            <TextBlock
+                                FontFamily="Roboto"
+                                FontSize="{Binding VFontSize, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                FontWeight="{Binding VFontWeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Foreground="#A7B0B3"
+                                HorizontalAlignment="{Binding VTextHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                IsHitTestVisible="False"
+                                Margin="{Binding VTextMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Text="{Binding VTextChecked, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                TextWrapping="Wrap"
+                                VerticalAlignment="{Binding VTextVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                x:Name="PART_MainText" />
+                            <Image
+                                Height="{Binding VImageTwoHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                HorizontalAlignment="{Binding VImageTwoHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                IsHitTestVisible="False"
+                                Margin="{Binding VImageTwoMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Source="{Binding VNormalImageTwo, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                VerticalAlignment="{Binding VImageTwoVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Width="{Binding VImageTwoWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                x:Name="PART_ImageTwo" />
+                            <PathIcon
+                                Data="{Binding VNormalIconTwo, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Foreground="#A7B0B3"
+                                Height="{Binding VIconTwoHeight, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                HorizontalAlignment="{Binding VIconTwoHorizontalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                IsHitTestVisible="False"
+                                Margin="{Binding VIconTwoMargin, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                VerticalAlignment="{Binding VIconTwoVerticalAlignment, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                Width="{Binding VIconTwoWidth, RelativeSource={RelativeSource AncestorType=controls:VToggleButton}}"
+                                x:Name="PART_IconTwo" />
+                        </Grid>
+                    </Template>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Style>
+</Styles>

@@ -1,0 +1,88 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:inputs1="using:AvaloniaFramework.Apresentacao.Inputs"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.PreviewWith>
+        <Grid
+            Background="Black"
+            Height="500"
+            Width="500">
+
+            <inputs1:VComboBox
+                PlaceholderBaseForeground="Blue"
+                Watermark="Teste"
+                PointeroverForeground="Yellow">
+                <inputs1:VComboBoxItem>AAA</inputs1:VComboBoxItem>
+                <inputs1:VComboBoxItem>BBB</inputs1:VComboBoxItem>
+                <inputs1:VComboBoxItem>CCC</inputs1:VComboBoxItem>
+                <inputs1:VComboBoxItem>AAA</inputs1:VComboBoxItem>
+                <inputs1:VComboBoxItem>BBB</inputs1:VComboBoxItem>
+                <inputs1:VComboBoxItem>CCC</inputs1:VComboBoxItem>
+            </inputs1:VComboBox>
+
+        </Grid>
+    </Design.PreviewWith>
+    <ControlTheme TargetType="inputs1:VComboBoxItem" x:Key="{x:Type inputs1:VComboBoxItem}">
+        <Setter Property="inputs1:VComboBoxItem.Padding" Value="8" />
+        <Setter Property="inputs1:VComboBoxItem.HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="inputs1:VComboBoxItem">
+                <ContentPresenter
+                    Background="Transparent"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    Content="{TemplateBinding Content}"
+                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    FontSize="{Binding VContentFontSize, RelativeSource={RelativeSource AncestorType=inputs1:VComboBox}}"
+                    Foreground="{Binding (inputs1:VComboBox.PlaceholderBaseForeground), RelativeSource={RelativeSource Self}}"
+                    HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                    Name="PART_ContentPresenter"
+                    Padding="{TemplateBinding Padding}"
+                    VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{Binding (inputs1:VComboBox.PointeroverBackground), RelativeSource={RelativeSource Self}}" />
+            <Setter Property="Foreground" Value="{Binding (inputs1:VComboBox.PointeroverForeground), RelativeSource={RelativeSource Self}}" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+
+        <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{Binding (inputs1:VComboBox.PointeroverBackground), RelativeSource={RelativeSource Self}}" />
+            <Setter Property="Foreground" Value="{Binding (inputs1:VComboBox.PointeroverForeground), RelativeSource={RelativeSource Self}}" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+
+        <Style Selector="^:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{Binding (inputs1:VComboBox.PointeroverBackground), RelativeSource={RelativeSource Self}}" />
+            <Setter Property="Foreground" Value="{Binding (inputs1:VComboBox.PointeroverForeground), RelativeSource={RelativeSource Self}}" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+
+        <!--  SELECTED STATE  -->
+        <Style Selector="^:selected">
+            <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background" Value="{Binding (inputs1:VComboBox.PointeroverBackground), RelativeSource={RelativeSource Self}}" />
+                <Setter Property="Foreground" Value="{Binding (inputs1:VComboBox.PointeroverForeground), RelativeSource={RelativeSource Self}}" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+            <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background" Value="{Binding (inputs1:VComboBox.PointeroverBackground), RelativeSource={RelativeSource Self}}" />
+                <Setter Property="Foreground" Value="{Binding (inputs1:VComboBox.PointeroverForeground), RelativeSource={RelativeSource Self}}" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background" Value="{Binding (inputs1:VComboBox.PointeroverBackground), RelativeSource={RelativeSource Self}}" />
+                <Setter Property="Foreground" Value="{Binding (inputs1:VComboBox.PointeroverForeground), RelativeSource={RelativeSource Self}}" />
+                <Setter Property="CornerRadius" Value="4" />
+            </Style>
+
+        </Style>
+
+    </ControlTheme>
+
+</ResourceDictionary>

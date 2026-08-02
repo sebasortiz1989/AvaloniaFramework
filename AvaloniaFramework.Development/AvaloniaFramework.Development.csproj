@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    A build-only package: it ships no assembly, just MSBuild props/targets plus the shared
+    stylecop.json and analyzer ruleset. NuGet auto-imports build/$(PackageId).props and
+    build/$(PackageId).targets into any project that references it, which is how the code-quality
+    settings reach a consumer without that project configuring anything itself.
+  -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- NU5128: no lib/ref folder, which is the whole point of a build-only package. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+  </PropertyGroup>
+
+  <!--
+    StyleCop.Analyzers is a real dependency so NuGet resolves it during the consumer's first
+    restore and its analyzer assets flow through. Declaring it inside build/*.targets instead
+    (as some setups do) silently does nothing: restore never sees a PackageReference that only
+    appears once the package is already installed, so the settings file ships but no StyleCop
+    rule ever runs.
+
+    This is also why the package is NOT marked DevelopmentDependency — that would make consumers
+    treat it as PrivateAssets="all", which blocks exactly this transitive analyzer flow.
+  -->
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)../artifacts</PackageOutputPath>
+    <PackageId>AvaloniaFramework.Development</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Sebastian Ortiz</Authors>
+    <Description>
+      Shared development environment set-up: StyleCop and .NET analyzer configuration,
+      so every project follows the same code-quality rules without duplicating settings.
+    </Description>
+    <PackageTags>msbuild;stylecop;analyzers;code-quality</PackageTags>
+    <RepositoryUrl>https://github.com/sebasortiz1989/AvaloniaFramework</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/sebasortiz1989/AvaloniaFramework</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="build\**\*" PackagePath="build\" />
+    <Content Include="buildMultiTargeting\*" PackagePath="buildMultiTargeting\" />
+  </ItemGroup>
+
+</Project>

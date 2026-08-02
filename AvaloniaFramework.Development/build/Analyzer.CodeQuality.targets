@@ -1,0 +1,57 @@
+<Project>
+
+  <!--
+    Imported as .targets rather than .props so that properties the consuming project sets in its
+    own body — IsTestProject, EnsureCodeQuality — are already defined by the time these conditions
+    are evaluated.
+  -->
+
+  <PropertyGroup Condition="'$(IsTestProject)' != 'true'">
+    <!-- Opt a project out with <EnsureCodeQuality>false</EnsureCodeQuality>. -->
+    <EnsureCodeQuality Condition="'$(EnsureCodeQuality)' == ''">true</EnsureCodeQuality>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(EnsureCodeQuality)' == 'true'">
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)Default.Analyzers.ruleset</CodeAnalysisRuleSet>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <NoWarn>$(NoWarn);CA1032</NoWarn><!-- Implement standard exception constructors -->
+    <NoWarn>$(NoWarn);CA1717</NoWarn><!-- Only FlagsAttribute enums should have plural names -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn><!-- Missing XML comment for publicly visible type or member -->
+  </PropertyGroup>
+
+  <!--
+    Warnings fail the build only in Release, so day-to-day Debug builds stay usable while a
+    release cannot ship with unresolved analyzer complaints.
+  -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' AND '$(EnsureCodeQuality)' == 'true'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!--
+    Two supported ways in, and StyleCop.Analyzers has to arrive differently for each:
+
+      * PackageReference — it is a dependency in this package's .csproj, resolved by restore
+        before these targets are ever imported. Adding it below too would duplicate it, so the
+        marker property set in AvaloniaFramework.Development.props suppresses that.
+
+      * Direct <Import> of this file (e.g. from a git submodule, via Directory.Build.targets) —
+        no package is involved, so the reference below is the only way the analyzer arrives. It
+        works here because a file the consumer imports itself is evaluated as part of the project,
+        unlike an import that only exists once a package has already been restored.
+  -->
+  <ItemGroup Condition="'$(EnsureCodeQuality)' == 'true' AND '$(AvaloniaFrameworkDevelopmentFromPackage)' != 'true'">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556" PrivateAssets="All" />
+  </ItemGroup>
+
+  <!--
+    The settings travel with the package, so consumers need no stylecop.json of their own. A
+    project that keeps a local copy will have two AdditionalFiles named stylecop.json, which is
+    ambiguous — delete the local one, or set EnsureCodeQualitySettings=false and keep yours.
+  -->
+  <ItemGroup Condition="'$(EnsureCodeQuality)' == 'true' AND '$(EnsureCodeQualitySettings)' != 'false'">
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
+  </ItemGroup>
+
+</Project>

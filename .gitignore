@@ -1,5 +1,6 @@
-AvaloniaFramework/bin/
-AvaloniaFramework/obj/
+# Build output for any project in the repo, not just the runtime library.
+[Bb]in/
+[Oo]bj/
 
 # NuGet pack output (PackageOutputPath)
 artifacts/

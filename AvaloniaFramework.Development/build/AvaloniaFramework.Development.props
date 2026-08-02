@@ -1,0 +1,10 @@
+<Project>
+  <!--
+    Entry point NuGet imports before the consuming project body. Reaching this file at all means
+    the consumer came via a PackageReference, so StyleCop.Analyzers is already resolved as a
+    package dependency and Analyzer.CodeQuality.targets must not add it a second time.
+  -->
+  <PropertyGroup>
+    <AvaloniaFrameworkDevelopmentFromPackage>true</AvaloniaFrameworkDevelopmentFromPackage>
+  </PropertyGroup>
+</Project>

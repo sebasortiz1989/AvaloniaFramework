@@ -141,6 +141,41 @@ style class:
 <buttons:VButton Classes="BtnPrimary" Command="{Binding LoginCommand}" VText="Entrar" />
 ```
 
+## AvaloniaFramework.Development
+
+A second, build-only package in this repo. It carries no assembly — just MSBuild props/targets, a
+shared `stylecop.json`, and an analyzer ruleset, so every project can share one code-quality
+configuration instead of copying settings around:
+
+```xml
+<PackageReference Include="AvaloniaFramework.Development" Version="1.0.0" />
+```
+
+That single reference turns on StyleCop plus the .NET analyzers (`AnalysisMode=AllEnabledByDefault`,
+`EnforceCodeStyleInBuild`) and applies the shared settings. Warnings fail the build **in Release
+only**, so day-to-day Debug builds stay workable.
+
+The shared `stylecop.json` sets: `using` directives outside the namespace, `System.*` **not** sorted
+first (plain alphabetical), XML docs required on public interfaces but not on `internal` members.
+
+Knobs:
+
+| Property | Effect |
+|---|---|
+| `<EnsureCodeQuality>false</EnsureCodeQuality>` | Opts a project out entirely. Test projects (`IsTestProject`) are excluded automatically. |
+| `<EnsureCodeQualitySettings>false</EnsureCodeQualitySettings>` | Keeps the analyzers but drops the packaged `stylecop.json`, for a project supplying its own. |
+
+Delete any local `stylecop.json` when adopting this package — two `AdditionalFiles` of that name is
+ambiguous.
+
+> **Note on the `PackageReference`-in-`.targets` pattern.** `StyleCop.Analyzers` is declared as a
+> real dependency of this package, not added from `Analyzer.CodeQuality.targets`. A
+> `PackageReference` that only appears inside a package's own imported targets is invisible to
+> restore — the analyzer never installs and no StyleCop rule ever runs, while the settings file
+> still ships and makes it look configured. For the same reason this package is deliberately **not**
+> marked `DevelopmentDependency`: that implies `PrivateAssets="all"` on the consumer, which blocks
+> the transitive analyzer flow this relies on.
+
 ## Trimming and NativeAOT
 
 The container resolves by reflection (`ConstructorInfo.Invoke`, and `MakeGenericMethod` to

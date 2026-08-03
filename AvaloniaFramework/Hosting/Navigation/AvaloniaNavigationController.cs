@@ -19,6 +19,14 @@ public sealed class AvaloniaNavigationController(SynchronizationContext synchron
     private object? shellDefaultContent;
     private volatile bool closing;
 
+    /// <summary>
+    /// The shell on activity-based platforms. Android's <see cref="IActivityApplicationLifetime"/>
+    /// exposes only a <c>MainViewFactory</c> and no live instance — an activity can be recreated,
+    /// so there is nothing stable for the lifetime to hand back. The host therefore tells the
+    /// controller which shell is current through <see cref="AttachShell"/>.
+    /// </summary>
+    private ContentControl? activityShell;
+
     /// <inheritdoc />
     public PresenterHandle? CurrentPresenter => navigationStack.TryPeek(out var value) ? value : null;
 
@@ -28,11 +36,37 @@ public sealed class AvaloniaNavigationController(SynchronizationContext synchron
     /// <inheritdoc />
     public PresentationExecutionContext CreateContext() => new(synchronizationContext);
 
+    /// <summary>
+    /// Registers the shell an activity-based platform has just created, and immediately shows the
+    /// current screen in it.
+    /// </summary>
+    /// <remarks>
+    /// Call this from the <c>MainViewFactory</c> the host assigns to
+    /// <see cref="IActivityApplicationLifetime"/>. Android runs the factory again whenever it
+    /// recreates the activity — on rotation, or after the process is reclaimed — so the newest
+    /// shell replaces the previous one and inherits the navigation stack, which lives here rather
+    /// than in the view.
+    /// </remarks>
+    /// <param name="shell">The freshly created shell.</param>
+    public void AttachShell(ContentControl shell)
+    {
+        ArgumentNullException.ThrowIfNull(shell);
+
+        activityShell = shell;
+
+        // Read per shell, not cached across them: a recreated activity brings a new instance whose
+        // own placeholder content is what the stack should fall back to when it empties.
+        shellDefaultContent = shell.Content;
+
+        ShowCurrentPresenter();
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
         closing = true;
         shellDefaultContent = null;
+        activityShell = null;
         navigationStack.Clear();
     }
 
@@ -159,6 +193,13 @@ public sealed class AvaloniaNavigationController(SynchronizationContext synchron
         {
             case IClassicDesktopStyleApplicationLifetime { MainWindow: { } mainWindow } desktop:
                 ShowInDesktopShell(desktop, mainWindow);
+                break;
+
+            // Before the single-view case: Avalonia 12 moved Android onto
+            // IActivityApplicationLifetime, and an implementation may satisfy both interfaces —
+            // matching the single-view one first would look for a MainView that is never set.
+            case IActivityApplicationLifetime when activityShell is { } shell:
+                shell.Content = CurrentPresenter ?? shellDefaultContent;
                 break;
 
             case ISingleViewApplicationLifetime { MainView: ContentControl mainView }:

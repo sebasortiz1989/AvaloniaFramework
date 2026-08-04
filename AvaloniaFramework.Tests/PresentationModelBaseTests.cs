@@ -151,9 +151,18 @@ public class PresentationModelBaseTests
         Assert.False(screen.WasCancelledWhileRunning);
     }
 
-    /// <summary>A caller-supplied token cancels the run rather than leaving it hanging.</summary>
+    /// <summary>
+    /// The caller's token is cooperative: it surfaces through PresentationModelFinished so work
+    /// inside the model can stop, but it does not complete the run on its own.
+    /// </summary>
+    /// <remarks>
+    /// Worth pinning down, because the signature reads as though cancelling would end the run.
+    /// It does not — only Finish, FinishWithError or Cancel do — so a caller who cancels and then
+    /// awaits without finishing waits forever. The wait here is bounded so a regression shows up
+    /// as a failure rather than a hung test run.
+    /// </remarks>
     [Fact]
-    public async Task CancellingTheCallersTokenCancelsTheRun()
+    public async Task CancellingTheCallersTokenDoesNotOnItsOwnEndTheRun()
     {
         var screen = new Screen();
         using var cancellation = new CancellationTokenSource();
@@ -161,7 +170,11 @@ public class PresentationModelBaseTests
         var run = screen.RunAsync("hello", default, cancellation.Token);
         await cancellation.CancelAsync();
 
-        // The run ends one way or another rather than hanging; either shape is acceptable here.
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => run);
+        var finishedEarly = await Task.WhenAny(run, Task.Delay(TimeSpan.FromMilliseconds(250)));
+        Assert.NotSame(run, finishedEarly);
+
+        // Finishing is what actually ends it.
+        await screen.Finish(7);
+        Assert.Equal(7, await run);
     }
 }

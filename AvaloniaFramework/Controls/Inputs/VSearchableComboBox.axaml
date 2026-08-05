@@ -1,0 +1,82 @@
+<ResourceDictionary
+    xmlns="https://github.com/avaloniaui"
+    xmlns:inputs="using:AvaloniaFramework.Controls.Inputs"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ControlTheme TargetType="inputs:VSearchableComboBox" x:Key="{x:Type inputs:VSearchableComboBox}">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <!--
+                    The list is a sibling of the field in ordinary layout, not a popup, so it shares
+                    the coordinate space of whatever scales the page. See the class remarks — this
+                    is the whole point of the control.
+                -->
+                <StackPanel Spacing="{TemplateBinding VListSpacing}">
+                    <TextBox
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        FontFamily="{TemplateBinding FontFamily}"
+                        FontSize="{TemplateBinding FontSize}"
+                        Foreground="{TemplateBinding Foreground}"
+                        MinHeight="{TemplateBinding MinHeight}"
+                        Name="PART_TextBox"
+                        Padding="{TemplateBinding Padding}"
+                        PlaceholderText="{TemplateBinding PlaceholderText}"
+                        VerticalContentAlignment="Center">
+                        <!--
+                            Not a TemplateBinding: those are one-way, and the typing has to reach
+                            SearchText for the list to filter at all.
+                        -->
+                        <TextBox.Text>
+                            <Binding
+                                Mode="TwoWay"
+                                Path="SearchText"
+                                RelativeSource="{RelativeSource TemplatedParent}"
+                                UpdateSourceTrigger="PropertyChanged" />
+                        </TextBox.Text>
+                    </TextBox>
+
+                    <Border
+                        Background="{TemplateBinding VListBackground}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        IsVisible="{TemplateBinding IsListOpen}"
+                        MaxHeight="{TemplateBinding VListMaxHeight}">
+                        <ListBox
+                            Background="Transparent"
+                            ItemsSource="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Matches}"
+                            Name="PART_List">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <!--
+                                        Bound to the item itself: the control matches and shows
+                                        items by ToString, so the option type decides what a row
+                                        reads as and there is only one place to change it.
+                                    -->
+                                    <TextBlock
+                                        Text="{Binding}"
+                                        TextWrapping="Wrap" />
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                </StackPanel>
+            </ControlTemplate>
+        </Setter>
+
+        <!--
+            The row's own font and padding come from the control, so a consumer sizes the list by
+            sizing the picker rather than by reaching into the template.
+        -->
+        <Style Selector="^ /template/ ListBox > ListBoxItem">
+            <Setter Property="FontFamily" Value="{Binding $parent[inputs:VSearchableComboBox].FontFamily}" />
+            <Setter Property="FontSize" Value="{Binding $parent[inputs:VSearchableComboBox].FontSize}" />
+            <Setter Property="Foreground" Value="{Binding $parent[inputs:VSearchableComboBox].Foreground}" />
+            <Setter Property="Padding" Value="{Binding $parent[inputs:VSearchableComboBox].VItemPadding}" />
+        </Style>
+    </ControlTheme>
+
+</ResourceDictionary>

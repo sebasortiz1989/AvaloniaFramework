@@ -9,6 +9,7 @@
                 <ResourceInclude Source="avares://AvaloniaFramework/Controls/Buttons/VButton.axaml" />
                 <ResourceInclude Source="avares://AvaloniaFramework/Controls/Buttons/GroupButton.axaml" />
                 <ResourceInclude Source="avares://AvaloniaFramework/Controls/Inputs/VTextBoxWithLabel.axaml" />
+                <ResourceInclude Source="avares://AvaloniaFramework/Controls/Inputs/VSearchableComboBox.axaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Styles.Resources>

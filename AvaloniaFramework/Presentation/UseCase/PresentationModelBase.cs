@@ -109,6 +109,13 @@ public abstract class PresentationModelBase<TInput, TResult> : PresentationModel
     public Task<bool> FinishWithError(Exception exception) =>
         Task.FromResult(taskResult?.TrySetException(exception) ?? false);
 
+    /// <summary>
+    /// Cancels the current run. Used when navigation removes this screen without a normal
+    /// <see cref="Finish"/> (root reset, dispose, pop-to-root).
+    /// </summary>
+    /// <returns>True when a run was canceled; false when nothing was running.</returns>
+    public bool Abandon() => taskResult?.TrySetCanceled() ?? false;
+
     /// <inheritdoc />
     public void Dispose()
     {

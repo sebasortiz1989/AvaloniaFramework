@@ -67,7 +67,10 @@ public sealed class AvaloniaNavigationController(SynchronizationContext synchron
         closing = true;
         shellDefaultContent = null;
         activityShell = null;
-        navigationStack.Clear();
+
+        // Finish every abandoned run so awaiting PushAsync/RootAsync callers do not hang.
+        while (navigationStack.Count > 0)
+            navigationStack.Pop().AbandonRun();
     }
 
     /// <inheritdoc />
@@ -133,7 +136,7 @@ public sealed class AvaloniaNavigationController(SynchronizationContext synchron
             return Task.CompletedTask;
 
         while (navigationStack.Count > 1)
-            navigationStack.Pop();
+            navigationStack.Pop().AbandonRun();
 
         ShowCurrentPresenter();
         return Task.CompletedTask;
@@ -144,12 +147,10 @@ public sealed class AvaloniaNavigationController(SynchronizationContext synchron
         TInput input)
     {
         ArgumentNullException.ThrowIfNull(presenter);
+        ObjectDisposedException.ThrowIf(closing, this);
 
-        if (!closing)
-        {
-            navigationStack.Push((PresenterHandle)presenter);
-            ShowCurrentPresenter();
-        }
+        navigationStack.Push((PresenterHandle)presenter);
+        ShowCurrentPresenter();
 
         return await presenter.RunAsync(input, CreateContext(), CancellationToken.None).WithSync();
     }
@@ -159,13 +160,13 @@ public sealed class AvaloniaNavigationController(SynchronizationContext synchron
         TInput input)
     {
         ArgumentNullException.ThrowIfNull(presenter);
+        ObjectDisposedException.ThrowIf(closing, this);
 
-        if (!closing)
-        {
-            navigationStack.Clear();
-            navigationStack.Push((PresenterHandle)presenter);
-            ShowCurrentPresenter();
-        }
+        while (navigationStack.Count > 0)
+            navigationStack.Pop().AbandonRun();
+
+        navigationStack.Push((PresenterHandle)presenter);
+        ShowCurrentPresenter();
 
         return await presenter.RunAsync(input, CreateContext(), CancellationToken.None).WithSync();
     }
@@ -174,14 +175,16 @@ public sealed class AvaloniaNavigationController(SynchronizationContext synchron
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        if (navigationStack.Count == 0)
+        if (closing || navigationStack.Count == 0)
             return false;
 
-        if (!closing)
-        {
-            navigationStack.Pop();
-            ShowCurrentPresenter();
-        }
+        // Docs and contract: only the top screen may be popped. Popping a deeper model would
+        // remove the wrong presenter and leave the real top's PushAsync hanging.
+        if (CurrentPresenter is not { } top || !top.Hosts(model))
+            return false;
+
+        navigationStack.Pop();
+        ShowCurrentPresenter();
 
         // Finishing the model is what completes the task the matching PushAsync returned.
         return await model.Finish(output).WithSync();

@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+For deep, task-specific background, see the skills in `.claude/skills/`:
+`development-analyzer-package` (the StyleCop/`.Development` package wiring) and
+`avalonia-docs-connector` (using the Avalonia MCP docs tools). Read the
+relevant one before working in that area rather than duplicating it here.
+
 ## What this is
 
 A .NET 10 class library packaging an MVP/navigation framework for Avalonia 12 into a redistributable
@@ -42,20 +47,8 @@ navigation, and command behaviour is best done from a small console harness refe
 - `AvaloniaFramework` — the runtime library.
 - `AvaloniaFramework.Development` — build-only: MSBuild props/targets, the shared `stylecop.json`,
   and the analyzer ruleset. No assembly; `IncludeBuildOutput=false`. Consumers get StyleCop and the
-  .NET analyzers from one `PackageReference`. See `README.md` for the knobs.
-
-Two things about that package are deliberate and must not be "tidied":
-
-- `StyleCop.Analyzers` is a **real dependency in the `.csproj`**, not a `PackageReference` inside
-  `Analyzer.CodeQuality.targets`. Restore does not see a `PackageReference` that only exists once
-  the package is installed — declaring it there ships the settings file but runs no rules, which
-  looks configured and is not. This was verified empirically, and is the bug the original
-  `Verion.Development` had.
-- The package is **not** `DevelopmentDependency`, because that implies `PrivateAssets="all"` on the
-  consumer and blocks the transitive analyzer flow the design depends on.
-
-When changing it, verify from a scratch consumer project that an SA rule actually fires — a build
-that merely succeeds proves nothing here.
+  .NET analyzers from one `PackageReference`. See `README.md` for the knobs, and the
+  `development-analyzer-package` skill before changing its wiring.
 
 ## Layout
 
@@ -98,21 +91,5 @@ AvaloniaFramework/
 
 ## Avalonia docs connector
 
-An Avalonia MCP connector is configured for this repo. Before writing or editing any `.axaml`, custom
-control, style selector, or binding, call `get_avalonia_expert_rules` once per session, then
-`search_avalonia_docs` for the specific topic. Prefer it over recalling Avalonia from memory — this
-project is on Avalonia **12.1.1**, so verify anything version-sensitive rather than assuming 11.x
-behaviour.
-
-Limits worth knowing:
-
-- `lookup_avalonia_api` has gaps (e.g. no entry for `InputPane`, which `PresenterUserControl` relies
-  on). `search_avalonia_docs` is the more reliable of the two.
-- `search_avalonia_docs` can return responses too large to read in one call; prefer narrow queries.
-- Some API details are faster to confirm against the reference assemblies in
-  `~/.nuget/packages/avalonia/12.1.1/ref/net10.0/` than through the docs. For example `GotFocus`
-  carries `FocusChangedEventArgs`, not a `GotFocusEventArgs`.
-- CSS-shorthand `translate()` accepts **px only** — no percentages. A layout needing "shift by half
-  my own height" has no declarative form; restructure the template instead.
-- The migration tools (`analyze_wpf_project`, `migrate_to_avalonia`, `migrate_to_xpf`,
-  `lookup_wpf_to_avalonia_mapping`) are for WPF ports and are not relevant here.
+See the `avalonia-docs-connector` skill — call `get_avalonia_expert_rules` once per session before
+touching any `.axaml`, custom control, style selector, or binding.

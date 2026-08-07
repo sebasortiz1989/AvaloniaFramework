@@ -45,6 +45,12 @@ public abstract class PresenterUserControl<TModel, TInput, TResult>
     /// <summary>The view model this screen is bound to.</summary>
     public TModel PresentationModel { get; }
 
+    /// <inheritdoc />
+    public bool Hosts(object model) => ReferenceEquals(PresentationModel, model);
+
+    /// <inheritdoc />
+    public bool AbandonRun() => PresentationModel.Abandon();
+
     /// <summary>
     /// How far up the design canvas the focused field should sit when the keyboard is open,
     /// as a fraction of the view's height.

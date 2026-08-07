@@ -4,8 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 For deep, task-specific background, see the skills in `.claude/skills/`:
 `development-analyzer-package` (the StyleCop/`.Development` package wiring) and
-`avalonia-docs-connector` (using the Avalonia MCP docs tools). Read the
-relevant one before working in that area rather than duplicating it here.
+`framework-conventions` (Unit/interfaces/control-theming/DI design rules). Also
+see the personal `avalonia-docs-connector` skill (`~/.claude/skills/`), which
+applies across all Avalonia projects. Read the relevant one before working in
+that area rather than duplicating it here.
 
 ## What this is
 
@@ -66,28 +68,9 @@ AvaloniaFramework/
 
 ## Conventions
 
-- **`Unit`, never `Void`.** The no-input/no-result type is `Unit`. `Void` collides with
-  `System.Void` once a consumer puts `AvaloniaFramework` in a global using, which is the intended
-  consumption pattern.
-- **Interfaces are not `I`-prefixed.** `NavigationController`, `PresenterBase<,,>`,
-  `LifecycleStep<,>`, and `PresentationModel<,>` are interfaces. This is deliberate and matches the
-  lineage this framework was extracted from — do not "fix" it piecemeal.
-- **Every new control theme must be added to `LayoutStyles.axaml`** as a `ResourceInclude`, or the
-  control renders untemplated in consuming apps with no build error.
-- **Control appearance is expressed as `V*` styled properties per visual state**
-  (`VNormalBackground`, `VPressedForeground`, `VCheckedImageOne`, …) rather than baked into the
-  template, so consumers declare a whole variant as one style class. Template children are named
-  `PART_*` and switched via nested `^:pressed /template/ …` selectors binding back with
-  `{Binding $parent[ns:Control].VSomething}` — `TemplateBinding` does not work inside a nested
-  style's setter.
-- Controls deriving from a stock Avalonia control must override `StyleKeyOverride`, or they inherit
-  the base control's theme instead of their own.
-- `PresentationModelBase` declares a plain `PropertyChanged` event so consumers can use
-  PropertyChanged.Fody (`[AddINotifyPropertyChangedInterface]`) on derived view models.
-- **The container is reflection-based** (`ConstructorInfo.Invoke`, `MakeGenericMethod` for
-  `Factory<T>`), which is where the `IL2104` trim warnings in consuming mobile builds come from.
-  This is a known, documented limitation (see `README.md`) — not something to silence with a
-  `NoWarn`. Resolution failures under trimming surface at runtime, not build time.
+See the `framework-conventions` skill for the full detail (Unit vs Void, interface naming, control
+theming, the reflection-based container). Summary: don't normalize these to generic .NET/Avalonia
+defaults — they're deliberate API choices consumers rely on.
 
 ## Avalonia docs connector
 

@@ -1,0 +1,109 @@
+<UserControl
+    IsVisible="{Binding #Root.IsOpen}"
+    x:Class="AvaloniaFramework.Controls.Overlays.VPhotoViewer"
+    x:Name="Root"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:imaging="using:AvaloniaFramework.Imaging"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Bindings target the control's own properties through #Root rather than the ambient
+        DataContext: a UserControl inherits its parent's DataContext, so a plain {Binding Path}
+        would look for Path on the host screen's view model.
+
+        Every colour, the icon and the font come in as V* properties rather than as resource keys
+        looked up by name. A control that reaches for {DynamicResource SurfaceRaised} silently
+        depends on the consuming app having chosen that exact name; a property is a contract the
+        compiler and the reader can both see. See the class remarks for the defaults.
+    -->
+    <!--
+        The whole scrim is the dismiss target. A photo opened by tapping it is closed by tapping it
+        again — there is nothing else on this screen to hit by accident.
+    -->
+    <Button
+        Background="{Binding #Root.VScrim}"
+        BorderThickness="0"
+        Command="{Binding #Root.CloseCommand}"
+        CornerRadius="0"
+        HorizontalAlignment="Stretch"
+        HorizontalContentAlignment="Stretch"
+        Padding="0"
+        VerticalAlignment="Stretch"
+        VerticalContentAlignment="Stretch">
+        <Grid RowDefinitions="*,Auto">
+            <!--
+                Uniform, not UniformToFill: this is the one place a photo is shown whole rather
+                than cropped. The margin keeps it clear of the screen edges so a portrait photo does
+                not run under the status bar, and clear of the cross above it.
+            -->
+            <Image
+                imaging:ImageLoader.DecodeWidth="0"
+                imaging:ImageLoader.Path="{Binding #Root.ActivePath}"
+                Grid.Row="0"
+                Margin="{Binding #Root.VPhotoMargin}"
+                Stretch="Uniform" />
+
+            <!--
+                The cross says the photo is dismissible without having to guess that the scrim is.
+                Nested inside the dismiss button on purpose: whichever of the two is hit, the
+                outcome is the same, so there is nothing to get wrong.
+            -->
+            <Border
+                Background="{Binding #Root.VSurface}"
+                BorderBrush="{Binding #Root.VStroke}"
+                BorderThickness="1"
+                CornerRadius="35"
+                Grid.Row="0"
+                HorizontalAlignment="Right"
+                Margin="35,35,35,0"
+                VerticalAlignment="Top">
+                <Button
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Command="{Binding #Root.CloseCommand}"
+                    Height="70"
+                    Padding="0"
+                    Width="70">
+                    <Viewbox
+                        Height="32"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Width="32">
+                        <Path
+                            Data="{Binding #Root.VCloseIcon}"
+                            Stretch="Uniform"
+                            Stroke="{Binding #Root.VInk}"
+                            StrokeJoin="Round"
+                            StrokeLineCap="Round"
+                            StrokeThickness="2" />
+                    </Viewbox>
+                </Button>
+            </Border>
+
+            <!--
+                The caption cannot sit straight on the scrim: a scrim is dark in both palettes, and
+                an ink colour is usually dark in the light one. It gets a fill and an edge and no
+                ring, because there is no page colour behind it to ring with.
+
+                Absent unless the host supplies wording — a library has no business inventing a
+                sentence in some language the app does not use.
+            -->
+            <Border
+                Background="{Binding #Root.VSurface}"
+                BorderBrush="{Binding #Root.VStroke}"
+                BorderThickness="1"
+                CornerRadius="21"
+                Grid.Row="1"
+                HorizontalAlignment="Center"
+                IsVisible="{Binding #Root.VHint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                Margin="0,0,0,70"
+                Padding="28,14">
+                <TextBlock
+                    FontFamily="{Binding #Root.VFontFamily}"
+                    FontSize="{Binding #Root.VHintFontSize}"
+                    Foreground="{Binding #Root.VInk}"
+                    Text="{Binding #Root.VHint}" />
+            </Border>
+        </Grid>
+    </Button>
+</UserControl>

@@ -116,10 +116,11 @@ public partial class LoginView : PresenterUserControl<LoginViewModel, Unit, Unit
 | `AvaloniaFramework` | `Unit` (the no-input/no-result type), `LayoutStyles` |
 | `AvaloniaFramework.Threading` | `WithSync()` / `NoSync()` / `Forget()`, `SynchronizationContext.SwitchTo()` and `Run()` |
 | `AvaloniaFramework.DependencyInjection` | `Container`, `ContainerBuilder`, `ImmutableContainerBuilder`, `ContainerRegistration`, `Factory<T>` |
-| `AvaloniaFramework.Presentation` | `NavigationController`, `SynchronizedCommand`, `SynchronizationBehavior`, `PresentationExecutionContext` |
+| `AvaloniaFramework.Presentation` | `NavigationController`, `SynchronizedCommand`, `SynchronizationBehavior`, `PresentationExecutionContext`, `PeriodPicker`, `PeriodScope`, `PeriodCell`, `MonthOption` |
 | `AvaloniaFramework.Presentation.UseCase` | `PresentationModelBase<,>`, `PresenterBase<,,>`, `LifecycleStep<,>` |
-| `AvaloniaFramework.Controls` | `PresenterUserControl<,,>`, `VButton`, `GroupButton`, `VTextBoxWithLabel` |
-| `AvaloniaFramework.Hosting` | `ApplicationPreview`, `ShellWindow`, `ShellView`, `AvaloniaNavigationController`, `AvaloniaViewContainerBuilder` |
+| `AvaloniaFramework.Controls` | `PresenterUserControl<,,>`, `VButton`, `GroupButton`, `VTextBoxWithLabel`, `VPhotoViewer`, `VReportPreview`, `VPeriodPicker` |
+| `AvaloniaFramework.Imaging` | `ImageLoader`, `PhotoCache`, `PhotoDownscaler`, `ExifOrientation` |
+| `AvaloniaFramework.Hosting` | `ApplicationPreview`, `ShellWindow`, `ShellView`, `ScreenOverlay`, `AvaloniaNavigationController`, `AvaloniaViewContainerBuilder` |
 
 `Unit` deliberately avoids the name `Void`, which collides with `System.Void` under a global using.
 
@@ -140,6 +141,52 @@ style class:
 ```xml
 <buttons:VButton Classes="BtnPrimary" Command="{Binding LoginCommand}" VText="Entrar" />
 ```
+
+### Composed controls
+
+`VPhotoViewer`, `VReportPreview` (`Controls.Overlays`) and `VPeriodPicker` (`Controls.Pickers`) are
+whole pieces of screen rather than primitives, so they are `UserControl`s with a fixed arrangement —
+but they take their appearance the same way, through `V*` properties. They never look a resource key
+up by name: a control that reaches for `{DynamicResource SurfaceRaised}` is betting that every app it
+lands in picked that word, and the bet fails silently. Every default is plain but legible, so the
+control can be dropped in and judged before an app commits to styling it.
+
+```xml
+<Style Selector="overlays|VPhotoViewer">
+    <Setter Property="VScrim" Value="{DynamicResource Scrim}" />
+    <Setter Property="VSurface" Value="{DynamicResource SurfaceRaised}" />
+    <Setter Property="VInk" Value="{DynamicResource InkPrimary}" />
+</Style>
+```
+
+User-facing wording is a property too (`VHint`, `VShareText`, `VSaveText`), with no default — a
+library has no business inventing a sentence in a language the app does not use. An unset caption
+renders an empty button, which is loud enough to catch on the first run.
+
+The two overlays cover the whole screen, so they report their open state to `ScreenOverlay`. A shell
+that paints a navigation bar over its content subscribes to `ScreenOverlay.CoveredChanged` and hides
+the bar while anything is covering; without that the bar sits on top of the overlay, because `ZIndex`
+only orders siblings and the bar is in a different parent.
+
+`VPeriodPicker` is driven by a `Presentation.PeriodPicker`, which the screen's view model owns and
+constructs over itself as a `PeriodScope`. That interface is four members the screen almost certainly
+already has — the month options, the year options, and the selected month and year.
+
+### Imaging
+
+`ImageLoader` is an attached property that fills an `Image` from a file without decoding on the UI
+thread — the thing a value converter cannot do, because a converter has to return the bitmap inside
+the layout pass:
+
+```xml
+<Image imaging:ImageLoader.Path="{Binding PhotoPath}" imaging:ImageLoader.DecodeWidth="192" />
+```
+
+`PhotoCache` is the bounded LRU behind it, keyed by path *and* decode width, so a row scrolled back
+into view refills in the same frame. `PhotoDownscaler.ReduceAsync` caps a picked photo's longest edge
+and re-encodes it — run it in the file picker, not at the storage layer, and every caller gets it for
+free. It bakes EXIF rotation into the pixels and drops the tag, because a re-encode that kept the tag
+would turn the photo twice; a photo already small and already upright passes through byte for byte.
 
 ## AvaloniaFramework.Development
 

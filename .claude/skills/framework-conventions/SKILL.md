@@ -15,7 +15,18 @@ These are this library's own deliberate API design choices — consumers rely on
   `LifecycleStep<,>`, and `PresentationModel<,>` are interfaces. This is deliberate and matches the
   lineage this framework was extracted from — do not "fix" it piecemeal.
 - **Every new control theme must be added to `LayoutStyles.axaml`** as a `ResourceInclude`, or the
-  control renders untemplated in consuming apps with no build error.
+  control renders untemplated in consuming apps with no build error. This applies to *templated*
+  controls only. `Controls/Overlays/` and `Controls/Pickers/` hold composed `UserControl`s that ship
+  their own visual tree, have no `ControlTheme`, and so belong nowhere in that file.
+- **Never look a resource key up by name inside a control.** `{DynamicResource SurfaceRaised}` in a
+  library control is a silent bet that every consuming app chose that word; it fails by rendering
+  wrong, not by failing to build. Take appearance as `V*` properties with plain defaults instead,
+  and let the app map its tokens on in one style block. The same goes for user-facing wording —
+  `VHint`, `VShareText` and the like are properties with no default, so a library never invents a
+  sentence in a language the app does not speak.
+- **No IL weaver is required of consumers' assemblies or used in this one.** `PeriodPicker`
+  hand-writes `INotifyPropertyChanged`; consumers remain free to use PropertyChanged.Fody in their
+  own projects.
 - **Control appearance is expressed as `V*` styled properties per visual state**
   (`VNormalBackground`, `VPressedForeground`, `VCheckedImageOne`, …) rather than baked into the
   template, so consumers declare a whole variant as one style class. Template children are named

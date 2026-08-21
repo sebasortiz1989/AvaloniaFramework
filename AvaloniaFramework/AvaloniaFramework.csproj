@@ -45,6 +45,15 @@
     <Compile Update="Hosting\ShellView.axaml.cs">
       <DependentUpon>ShellView.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Controls\Overlays\VPhotoViewer.axaml.cs">
+      <DependentUpon>VPhotoViewer.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Controls\Overlays\VReportPreview.axaml.cs">
+      <DependentUpon>VReportPreview.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Controls\Pickers\VPeriodPicker.axaml.cs">
+      <DependentUpon>VPeriodPicker.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
 </Project>

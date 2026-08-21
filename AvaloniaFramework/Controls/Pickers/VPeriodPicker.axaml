@@ -1,0 +1,140 @@
+<UserControl
+    x:Class="AvaloniaFramework.Controls.Pickers.VPeriodPicker"
+    x:Name="Root"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:pickers="using:AvaloniaFramework.Controls.Pickers"
+    xmlns:presentation="using:AvaloniaFramework.Presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        The period picker, expanded inline rather than in a popup: a popup lays out in its own
+        visual root and so ignores any scale applied further down the tree, which rules it out in an
+        app scaled to a design canvas.
+
+        It exists because the arrows alone made a past month expensive — reaching a December of
+        last year meant walking back a month at a time, seven taps or more. Year row, then a month
+        cell, is three.
+
+        Bindings target the control's own Picker through #Root rather than the ambient DataContext.
+
+        IsOpen gates the inner border and not the UserControl itself. A host that has its own reason
+        to hide the whole control binds IsVisible on the instance, and that is a local value on the
+        very same object as a root IsVisible here would be. The host's binding is applied after this
+        file is loaded, so it would silently replace the IsOpen gate and leave the picker
+        permanently expanded. One condition per object composes; two do not.
+    -->
+    <UserControl.Styles>
+        <!--
+            The cells are styled here rather than left to the host's own chip class, so the control
+            renders as intended in an app that has never heard of it. Every colour still comes from
+            the V* properties, so an app that does have a chip vocabulary can match it exactly.
+        -->
+        <Style Selector="Button.PeriodCell">
+            <Setter Property="Background" Value="{Binding $parent[pickers:VPeriodPicker].VSurface}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="{Binding $parent[pickers:VPeriodPicker].VFontFamily}" />
+            <Setter Property="FontSize" Value="{Binding $parent[pickers:VPeriodPicker].VCellFontSize}" />
+            <Setter Property="Foreground" Value="{Binding $parent[pickers:VPeriodPicker].VInk}" />
+            <Setter Property="Padding" Value="24,12" />
+        </Style>
+
+        <Style Selector="Button.PeriodCell.Active">
+            <Setter Property="Background" Value="{Binding $parent[pickers:VPeriodPicker].VAccentTint}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{Binding $parent[pickers:VPeriodPicker].VAccent}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Border
+        Background="{Binding #Root.VSurface}"
+        ClipToBounds="True"
+        CornerRadius="21"
+        IsVisible="{Binding #Root.Picker.IsOpen}"
+        Margin="{Binding #Root.VContentMargin}">
+        <StackPanel Margin="28,21" Spacing="14">
+
+            <!--  The year, stepped without closing the picker.  -->
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Command="{Binding #Root.Picker.PreviousYearCommand}"
+                    Grid.Column="0"
+                    Padding="0"
+                    Width="70">
+                    <Viewbox
+                        Height="30"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Width="30">
+                        <Path
+                            Data="{Binding #Root.VPreviousIcon}"
+                            Stretch="Uniform"
+                            Stroke="{Binding #Root.VInk}"
+                            StrokeJoin="Round"
+                            StrokeLineCap="Round"
+                            StrokeThickness="1" />
+                    </Viewbox>
+                </Button>
+                <TextBlock
+                    FontFamily="{Binding #Root.VFontFamily}"
+                    FontSize="{Binding #Root.VYearFontSize}"
+                    Foreground="{Binding #Root.VInk}"
+                    Grid.Column="1"
+                    HorizontalAlignment="Center"
+                    Text="{Binding #Root.Picker.YearLabel}"
+                    VerticalAlignment="Center" />
+                <Button
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Command="{Binding #Root.Picker.NextYearCommand}"
+                    Grid.Column="2"
+                    Padding="0"
+                    Width="70">
+                    <Viewbox
+                        Height="30"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Width="30">
+                        <Path
+                            Data="{Binding #Root.VNextIcon}"
+                            Stretch="Uniform"
+                            Stroke="{Binding #Root.VInk}"
+                            StrokeJoin="Round"
+                            StrokeLineCap="Round"
+                            StrokeThickness="1" />
+                    </Viewbox>
+                </Button>
+            </Grid>
+
+            <Border Background="{Binding #Root.VRule}" Height="1" />
+
+            <!--
+                The whole-year cell leads and reads as the year itself; the twelve months follow,
+                four to a row. The selected cell wears an accent tint, so selection reads the same
+                way it does on a filter chip.
+            -->
+            <ItemsControl ItemsSource="{Binding #Root.Picker.Cells}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="4" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="presentation:PeriodCell">
+                        <Button
+                            Classes="PeriodCell"
+                            Classes.Active="{Binding IsSelected}"
+                            Command="{Binding SelectCommand}"
+                            Content="{Binding Label}"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Margin="3" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </Border>
+</UserControl>

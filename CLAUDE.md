@@ -59,10 +59,13 @@ AvaloniaFramework/
   Core/            Unit, await helpers (WithSync/NoSync/Forget), SynchronizationContext.SwitchTo/Run
   DependencyInjection/  Container, ContainerBuilder, ImmutableContainerBuilder,
                         ContainerRegistration, Factory<T>, Lifestyle
-  Presentation/    NavigationController, SynchronizedCommand, PresentationExecutionContext
+  Presentation/    NavigationController, SynchronizedCommand, PresentationExecutionContext,
+                   PeriodPicker + PeriodScope/PeriodCell/MonthOption (hand-written INPC — see below)
     UseCase/       PresentationModelBase<,>, PresenterBase<,,>, LifecycleStep<,>
-  Controls/        PresenterUserControl<,,>, Buttons/, Inputs/
-  Hosting/         ApplicationPreview, ShellWindow, ShellView, Navigation/, DependencyInjection/
+  Controls/        PresenterUserControl<,,>, Buttons/, Inputs/, Overlays/, Pickers/
+  Imaging/         ImageLoader (attached), PhotoCache, PhotoDownscaler, ExifOrientation
+  Hosting/         ApplicationPreview, ShellWindow, ShellView, ScreenOverlay, Navigation/,
+                   DependencyInjection/
   LayoutStyles.axaml   Merges every control theme; consumers include this in App.axaml
 ```
 
@@ -71,6 +74,22 @@ AvaloniaFramework/
 See the `framework-conventions` skill for the full detail (Unit vs Void, interface naming, control
 theming, the reflection-based container). Summary: don't normalize these to generic .NET/Avalonia
 defaults — they're deliberate API choices consumers rely on.
+
+Two additions from the 2026-08-21 move of DapperDemo's shared components into this library:
+
+- **A control here never looks a resource key up by name.** No `{DynamicResource SurfaceRaised}`,
+  no `{StaticResource IconClose}` — that is a silent bet on the consuming app having chosen that
+  word. Appearance is `V*` styled properties with plain-but-legible defaults, and the app maps its
+  tokens onto them in one style block. Same rule for user-facing wording (`VHint`, `VShareText`):
+  a property with no default, never an English or Portuguese literal baked in.
+- **No weaver.** `Presentation.PeriodPicker` implements `INotifyPropertyChanged` by hand rather
+  than with `[AddINotifyPropertyChangedInterface]`. Consumers are welcome to use PropertyChanged.Fody
+  on their own view models; a library must not require it of the assembly that references it.
+
+`Controls/Overlays/` and `Controls/Pickers/` hold **composed** controls — whole pieces of screen,
+`UserControl` with a fixed arrangement, not primitives with states worth re-templating. They have no
+`ControlTheme` and so nothing to add to `LayoutStyles.axaml`; that rule is about templated controls.
+Reach for a `ControlTheme` when the arrangement itself is the thing a consumer would want to replace.
 
 ## Avalonia docs connector
 

@@ -31,6 +31,7 @@
     <PackageProjectUrl>https://github.com/sebasortiz1989/AvaloniaFramework</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>

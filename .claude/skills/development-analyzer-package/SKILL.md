@@ -17,7 +17,7 @@ Two things about that package are deliberate and must not be "tidied":
   a `PackageReference` that only exists once the package is installed —
   declaring it there ships the settings file but runs no rules, which looks
   configured and is not. This was verified empirically, and is the bug the
-  original `Verion.Development` had.
+  earlier in-house analyzer package this one replaces had.
 - The package is **not** `DevelopmentDependency`, because that implies
   `PrivateAssets="all"` on the consumer and blocks the transitive analyzer flow
   the design depends on.

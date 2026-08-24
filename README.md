@@ -10,8 +10,13 @@ A small MVP/navigation framework for [Avalonia](https://avaloniaui.net) 12, pack
 
 ## Install
 
+**Not published to nuget.org.** The project is packable and `dotnet pack` produces
+`AvaloniaFramework.<version>.nupkg`, but nothing is pushed to a public feed — so
+consume it as a git submodule with a project reference (see
+[Consuming it](#consuming-it)), or pack it into a local feed of your own.
+
 ```bash
-dotnet add package AvaloniaFramework
+git submodule add https://github.com/sebasortiz1989/AvaloniaFramework.git external/AvaloniaFramework
 ```
 
 ## Wiring an app
@@ -240,7 +245,16 @@ dotnet pack AvaloniaFramework.slnx -c Release   # -> artifacts/AvaloniaFramework
 ```
 
 Packing is an explicit step rather than a side effect of building, and always writes to
-`artifacts/` regardless of configuration. There are no tests in this repo.
+`artifacts/` regardless of configuration.
+
+```bash
+dotnet test AvaloniaFramework.Tests/AvaloniaFramework.Tests.csproj
+```
+
+53 tests over the parts where being wrong is silent: container resolution and
+lifestyles, the presenter lifecycle, `SynchronizedCommand`'s discard/queue
+behaviour, and the navigation controller. The controls are not unit-tested —
+their behaviour is appearance, which a test asserts badly.
 
 ## Consuming it
 
@@ -256,3 +270,7 @@ dotnet sln YourApp.sln add external/AvaloniaFramework/AvaloniaFramework/Avalonia
 Then `<ProjectReference Include="…/AvaloniaFramework/AvaloniaFramework.csproj" />`. Consumers must
 clone with `--recursive` (or run `git submodule update --init`), and the project must be in the
 solution or restore fails with `NU1105`.
+
+## Licence
+
+MIT — see [`LICENSE`](LICENSE).

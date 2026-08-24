@@ -168,6 +168,12 @@ User-facing wording is a property too (`VHint`, `VShareText`, `VSaveText`), with
 library has no business inventing a sentence in a language the app does not use. An unset caption
 renders an empty button, which is loud enough to catch on the first run.
 
+`VReportPreview` magnifies the document it shows — pinch, double tap, drag, and the mouse wheel —
+because a page laid out to be read on paper is not readable at phone width. It resets to fitted
+whenever `ImagePath` or `IsOpen` changes, so one document never opens at the last one's
+magnification, and it holds the image inside its own viewport rather than letting a drag throw it
+off screen.
+
 The two overlays cover the whole screen, so they report their open state to `ScreenOverlay`. A shell
 that paints a navigation bar over its content subscribes to `ScreenOverlay.CoveredChanged` and hides
 the bar while anything is covering; without that the bar sits on top of the overlay, because `ZIndex`

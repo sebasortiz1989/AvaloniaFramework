@@ -1,7 +1,9 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media;
 using AvaloniaFramework.Hosting;
+using System;
 using System.Windows.Input;
 
 namespace AvaloniaFramework.Controls.Overlays;
@@ -22,6 +24,12 @@ namespace AvaloniaFramework.Controls.Overlays;
 /// run — louder than an English word appearing in a Portuguese app.
 /// </para>
 /// <para>
+/// The document can be magnified, because a page laid out to be read on paper is not readable at
+/// phone width: pinch to zoom, double tap to jump in and back out, drag to move around, and the
+/// mouse wheel where there is one. It resets to fitted whenever a different document is shown, so
+/// one report's magnification is never inherited by the next.
+/// </para>
+/// <para>
 /// Appearance arrives through the <c>V*</c> properties, in the manner of
 /// <see cref="Buttons.VButton"/>. See <see cref="VPhotoViewer"/> for the same arrangement and the
 /// reason this is a UserControl rather than a TemplatedControl.
@@ -29,6 +37,26 @@ namespace AvaloniaFramework.Controls.Overlays;
 /// </remarks>
 public partial class VReportPreview : UserControl
 {
+    /// <summary>
+    /// The most the document may be magnified.
+    /// </summary>
+    /// <remarks>
+    /// Eight times fitted width puts a report rendered at 1120 points well past the resolution it
+    /// was drawn at, which is as far as magnifying can usefully go — beyond it the reader is
+    /// looking at the renderer's own pixels.
+    /// </remarks>
+    private const double MaxZoom = 8;
+
+    /// <summary>What a double tap jumps to, and back from.</summary>
+    /// <remarks>
+    /// Enough to read a table cell on a phone in one gesture. Pinching still reaches anything
+    /// between this and <see cref="MaxZoom"/>; the tap is the shortcut for the common case.
+    /// </remarks>
+    private const double TapZoom = 3;
+
+    /// <summary>How much one wheel notch magnifies by.</summary>
+    private const double WheelStep = 1.2;
+
     /// <summary>Whether the preview covers its host screen.</summary>
     public static readonly StyledProperty<bool> IsOpenProperty =
         AvaloniaProperty.Register<VReportPreview, bool>(nameof(IsOpen));
@@ -105,10 +133,73 @@ public partial class VReportPreview : UserControl
     public static readonly StyledProperty<double> VActionFontSizeProperty =
         AvaloniaProperty.Register<VReportPreview, double>(nameof(VActionFontSize), 15d);
 
+    /// <summary>
+    /// The two halves of the image's render transform, mutated rather than replaced.
+    /// </summary>
+    /// <remarks>
+    /// Scale first, then translate: the group applies its children in order, so the offset is in
+    /// viewport units and does not itself grow with the magnification.
+    /// </remarks>
+    private readonly ScaleTransform magnification = new();
+
+    private readonly TranslateTransform pan = new();
+
+    /// <summary>How much the document is magnified. One is fitted to the viewport.</summary>
+    private double zoom = 1;
+
+    /// <summary>
+    /// The magnification a pinch started from, or null when none is under way.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="PinchEventArgs.Scale"/> is measured against the distance the fingers started at,
+    /// not against the previous event, so it has to be applied to the magnification as it was when
+    /// the gesture began rather than compounded frame by frame.
+    /// </remarks>
+    private double? pinchedFrom;
+
+    /// <summary>Where a drag last was, in viewport coordinates, or null when nothing is dragging.</summary>
+    private Point? draggingFrom;
+
+    /// <summary>
+    /// Whether the markup's controls exist yet.
+    /// </summary>
+    /// <remarks>
+    /// A property change can reach this control before its own template has been built, and the
+    /// magnification handling reads the image and the viewport by name. Cheaper and clearer than
+    /// null-checking two fields that the generated code declares as non-nullable.
+    /// </remarks>
+    private bool ready;
+
     /// <summary>Initializes a new instance of the <see cref="VReportPreview"/> class.</summary>
     public VReportPreview()
     {
         InitializeComponent();
+
+        // Top left, so the transform's arithmetic is in the image's own coordinates with no
+        // half-size offsets threaded through it. The default is the centre.
+        Page.RenderTransformOrigin = RelativePoint.TopLeft;
+        Page.RenderTransform = new TransformGroup { Children = { magnification, pan } };
+
+        // Added here rather than in the markup, so the gesture and the handler that answers it
+        // are in one place. The recognizer reports touch and pen only, which is why the wheel and
+        // the double tap are wired separately below.
+        Viewport.GestureRecognizers.Add(new PinchGestureRecognizer());
+        Viewport.Pinch += OnPinch;
+        Viewport.PinchEnded += OnPinchEnded;
+
+        Viewport.DoubleTapped += OnDoubleTapped;
+        Viewport.PointerWheelChanged += OnWheel;
+        Viewport.PointerPressed += OnPointerPressed;
+        Viewport.PointerMoved += OnPointerMoved;
+        Viewport.PointerReleased += OnPointerReleased;
+        Viewport.PointerCaptureLost += OnPointerCaptureLost;
+
+        // The fitted size is only known once the viewport has been given one, and it changes with
+        // the window. Re-clamping keeps a magnified document from being left outside its own edges.
+        Viewport.SizeChanged += (_, _) => ApplyTransform();
+        Page.SizeChanged += (_, _) => ApplyTransform();
+
+        ready = true;
     }
 
     /// <summary>Gets or sets a value indicating whether the preview covers its host screen.</summary>
@@ -247,11 +338,20 @@ public partial class VReportPreview : UserControl
     /// <inheritdoc/>
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
+        ArgumentNullException.ThrowIfNull(change);
         base.OnPropertyChanged(change);
 
         if (change.Property == IsOpenProperty)
         {
             ScreenOverlay.Current.Set(this, IsOpen);
+        }
+
+        // A different document, or this one being put away. Either way the next thing the user
+        // sees has to start fitted: inheriting the last report's magnification would open the new
+        // one somewhere in the middle of a page it has never seen.
+        if (change.Property == ImagePathProperty || change.Property == IsOpenProperty)
+        {
+            ResetZoom();
         }
     }
 
@@ -268,4 +368,150 @@ public partial class VReportPreview : UserControl
         base.OnDetachedFromVisualTree(e);
         ScreenOverlay.Current.Set(this, false);
     }
+
+    /// <summary>
+    /// Holds one axis of the offset inside the viewport.
+    /// </summary>
+    /// <param name="offset">The offset asked for.</param>
+    /// <param name="origin">Where the unmagnified image sits on this axis.</param>
+    /// <param name="size">How long the magnified image is on this axis.</param>
+    /// <param name="viewport">How long the viewport is on this axis.</param>
+    /// <returns>The offset to use: centred when the image is the smaller of the two, otherwise as
+    /// asked for but never past the image's own edge.</returns>
+    private static double Clamp(double offset, double origin, double size, double viewport)
+    {
+        if (size <= viewport)
+        {
+            return ((viewport - size) / 2) - origin;
+        }
+
+        return Math.Clamp(offset, viewport - size - origin, -origin);
+    }
+
+    /// <summary>
+    /// Magnifies about a fixed point in the viewport, so what is under the fingers stays there.
+    /// </summary>
+    /// <param name="target">The magnification wanted, before clamping.</param>
+    /// <param name="anchor">The viewport point to hold still.</param>
+    private void ZoomTo(double target, Point anchor)
+    {
+        var wanted = Math.Clamp(target, 1, MaxZoom);
+        if (!ready || Math.Abs(wanted - zoom) < 0.0001)
+        {
+            return;
+        }
+
+        // Where the anchor sits in the image's own coordinates, which is what has to come back out
+        // to the same place once the scale has changed.
+        var bounds = Page.Bounds;
+        var local = new Point(
+            (anchor.X - bounds.X - pan.X) / zoom,
+            (anchor.Y - bounds.Y - pan.Y) / zoom);
+
+        zoom = wanted;
+        pan.X = anchor.X - bounds.X - (local.X * zoom);
+        pan.Y = anchor.Y - bounds.Y - (local.Y * zoom);
+        ApplyTransform();
+    }
+
+    /// <summary>Puts the document back to fitted, with no offset.</summary>
+    private void ResetZoom()
+    {
+        zoom = 1;
+        pinchedFrom = null;
+        draggingFrom = null;
+        pan.X = 0;
+        pan.Y = 0;
+        ApplyTransform();
+    }
+
+    /// <summary>
+    /// Writes the current magnification and offset onto the image, keeping it inside its viewport.
+    /// </summary>
+    /// <remarks>
+    /// Everything that changes either value ends here, so the clamping lives in one place: a
+    /// document smaller than the viewport is centred in it, and a larger one may be moved only as
+    /// far as its own edges. Without it a flick could throw the page off screen with nothing left
+    /// to drag back.
+    /// </remarks>
+    private void ApplyTransform()
+    {
+        if (!ready)
+        {
+            return;
+        }
+
+        magnification.ScaleX = zoom;
+        magnification.ScaleY = zoom;
+
+        // Nothing has been laid out yet — the first SizeChanged will bring this straight back.
+        var bounds = Page.Bounds;
+        if (bounds.Width <= 0 || bounds.Height <= 0)
+        {
+            return;
+        }
+
+        pan.X = Clamp(pan.X, bounds.X, bounds.Width * zoom, Viewport.Bounds.Width);
+        pan.Y = Clamp(pan.Y, bounds.Y, bounds.Height * zoom, Viewport.Bounds.Height);
+    }
+
+    /// <summary>Pinching. Scale is measured from where the fingers started, not the last frame.</summary>
+    private void OnPinch(object? sender, PinchEventArgs e)
+    {
+        // Two fingers down ends any drag that was under way; the recognizer has taken the pointers
+        // and the drag would otherwise resume from a position that is now meaningless.
+        draggingFrom = null;
+
+        pinchedFrom ??= zoom;
+        ZoomTo(pinchedFrom.Value * e.Scale, e.ScaleOrigin);
+        e.Handled = true;
+    }
+
+    private void OnPinchEnded(object? sender, PinchEndedEventArgs e) => pinchedFrom = null;
+
+    /// <summary>Double tapping jumps in on what was tapped, and back out again.</summary>
+    private void OnDoubleTapped(object? sender, TappedEventArgs e) =>
+        ZoomTo(zoom > 1 ? 1 : TapZoom, e.GetPosition(Viewport));
+
+    /// <summary>The mouse equivalent of a pinch, about the pointer.</summary>
+    private void OnWheel(object? sender, PointerWheelEventArgs e)
+    {
+        ZoomTo(e.Delta.Y > 0 ? zoom * WheelStep : zoom / WheelStep, e.GetPosition(Viewport));
+        e.Handled = true;
+    }
+
+    private void OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        // Nothing to drag while the whole page is already on screen, and a pointer captured for
+        // a pan that cannot move is one the double tap never gets to see.
+        if (zoom <= 1)
+        {
+            return;
+        }
+
+        draggingFrom = e.GetPosition(Viewport);
+        e.Pointer.Capture(Viewport);
+    }
+
+    private void OnPointerMoved(object? sender, PointerEventArgs e)
+    {
+        if (draggingFrom is not { } from)
+        {
+            return;
+        }
+
+        var to = e.GetPosition(Viewport);
+        draggingFrom = to;
+        pan.X += to.X - from.X;
+        pan.Y += to.Y - from.Y;
+        ApplyTransform();
+    }
+
+    private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        draggingFrom = null;
+        e.Pointer.Capture(null);
+    }
+
+    private void OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e) => draggingFrom = null;
 }

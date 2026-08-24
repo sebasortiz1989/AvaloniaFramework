@@ -49,18 +49,29 @@
             <!--
                 Uniform: the whole page has to be legible at a glance, so it is fitted rather than
                 cropped. Decoded at full size — a rendered document is text, and a downscale would
-                make the figures being checked unreadable.
+                make the figures being checked unreadable at any magnification.
+
+                The magnification itself is a render transform on the image, set up in the
+                constructor and driven by the gestures in the code-behind. Centred alignment is
+                load-bearing rather than cosmetic: it makes the image measure to the fitted picture
+                rather than to the whole slot, so the panning bounds are the document's edges and
+                not a letterbox the user can drag the page out through.
             -->
             <Border
                 Background="{Binding #Root.VSurface}"
+                ClipToBounds="True"
                 CornerRadius="21"
                 Grid.Row="1"
-                Margin="35,21,35,21">
+                Margin="35,21,35,21"
+                x:Name="Viewport">
                 <Image
+                    HorizontalAlignment="Center"
                     imaging:ImageLoader.DecodeWidth="0"
                     imaging:ImageLoader.Path="{Binding #Root.ImagePath}"
                     Margin="14"
-                    Stretch="Uniform" />
+                    Stretch="Uniform"
+                    VerticalAlignment="Center"
+                    x:Name="Page" />
             </Border>
 
             <StackPanel Grid.Row="2" Margin="35,0,35,70">

@@ -53,7 +53,31 @@ public static class PhotoCache
     /// </remarks>
     private const int Capacity = 64;
 
+    /// <summary>
+    /// How many bytes of decoded pixels are held before the least recently used entry is dropped.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="Capacity"/> alone bounds the cache by COUNT, and the reasoning above it only
+    /// holds for the small entries it names: 64 avatars at ~150 KB is under 10 MB. But the same
+    /// cache also holds <see cref="FullSize"/> decodes, which is what the photo viewer and the
+    /// report preview ask for. A stored photo is capped at
+    /// <c>PhotoDownscaler.MaxStoredEdge</c> (1280) and decodes to roughly 5 MB — and photos saved
+    /// before the downscaler existed are not capped at all. Sixty-four of those is hundreds of
+    /// megabytes on a phone.
+    /// </para>
+    /// <para>
+    /// So the count is kept as a secondary guard and the real bound is bytes. At 64 MB nothing
+    /// changes for avatars or 512 px photos — the count limit still bites first — and the
+    /// full-size case is capped at roughly a dozen entries instead of sixty-four.
+    /// </para>
+    /// </remarks>
+    private const long MaxBytes = 64L * 1024 * 1024;
+
     private static readonly Lock Gate = new();
+
+    /// <summary>Decoded bytes currently held. Guarded by <see cref="Gate"/>.</summary>
+    private static long heldBytes;
 
     private static readonly Dictionary<(string Path, int Width), LinkedListNode<Entry>> Index = [];
 
@@ -164,13 +188,18 @@ public static class PhotoCache
                 Index.Remove(key);
             }
 
-            Index[key] = Order.AddFirst(new Entry(key, image));
+            Index[key] = Order.AddFirst(new Entry(key, image, EstimateBytes(image)));
+            heldBytes += EstimateBytes(image);
 
-            while (Order.Count > Capacity)
+            // Order.Count > 1 keeps the entry just stored even when it alone exceeds the budget:
+            // the caller is about to draw it, and evicting it would mean decoding it again on the
+            // next frame for ever.
+            while ((Order.Count > Capacity || heldBytes > MaxBytes) && Order.Count > 1)
             {
                 var oldest = Order.Last!;
                 Order.RemoveLast();
                 Index.Remove(oldest.Value.Key);
+                heldBytes -= oldest.Value.Bytes;
 
                 // Evicted without being disposed on purpose. An Image control still on screen may
                 // hold this bitmap, and disposing one that is being drawn tears down the surface
@@ -235,5 +264,9 @@ public static class PhotoCache
         return target;
     }
 
-    private readonly record struct Entry((string Path, int Width) Key, Bitmap Image);
+    /// <summary>Estimated decoded size: four bytes a pixel, which is what Avalonia stores.</summary>
+    private static long EstimateBytes(Bitmap image) =>
+        (long)image.PixelSize.Width * image.PixelSize.Height * 4;
+
+    private readonly record struct Entry((string Path, int Width) Key, Bitmap Image, long Bytes);
 }

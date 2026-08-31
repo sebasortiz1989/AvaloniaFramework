@@ -157,6 +157,15 @@ public partial class VReportPreview : UserControl
     /// </remarks>
     private double? pinchedFrom;
 
+    /// <summary>
+    /// The pointer a drag is following, or null when nothing is dragging.
+    /// </summary>
+    /// <remarks>
+    /// Held so a second finger can be told from the one already down. Only the first is ever
+    /// captured — see <see cref="OnPointerPressed"/> for why capturing the second kills the pinch.
+    /// </remarks>
+    private IPointer? draggingPointer;
+
     /// <summary>Where a drag last was, in viewport coordinates, or null when nothing is dragging.</summary>
     private Point? draggingFrom;
 
@@ -419,7 +428,7 @@ public partial class VReportPreview : UserControl
     {
         zoom = 1;
         pinchedFrom = null;
-        draggingFrom = null;
+        EndDrag();
         pan.X = 0;
         pan.Y = 0;
         ApplyTransform();
@@ -455,19 +464,36 @@ public partial class VReportPreview : UserControl
         pan.Y = Clamp(pan.Y, bounds.Y, bounds.Height * zoom, Viewport.Bounds.Height);
     }
 
+    /// <summary>Forgets the drag under way, leaving the magnification where it is.</summary>
+    private void EndDrag()
+    {
+        draggingPointer = null;
+        draggingFrom = null;
+    }
+
     /// <summary>Pinching. Scale is measured from where the fingers started, not the last frame.</summary>
     private void OnPinch(object? sender, PinchEventArgs e)
     {
         // Two fingers down ends any drag that was under way; the recognizer has taken the pointers
         // and the drag would otherwise resume from a position that is now meaningless.
-        draggingFrom = null;
+        EndDrag();
 
         pinchedFrom ??= zoom;
         ZoomTo(pinchedFrom.Value * e.Scale, e.ScaleOrigin);
         e.Handled = true;
     }
 
-    private void OnPinchEnded(object? sender, PinchEndedEventArgs e) => pinchedFrom = null;
+    /// <summary>The gesture is over, and so is anything it interrupted.</summary>
+    /// <remarks>
+    /// Two fingers that land and lift without moving produce no Pinch event at all, so this is the
+    /// only place the drag the first of them started gets forgotten. Left behind, it reads to
+    /// <see cref="OnPointerPressed"/> as a finger still down and refuses the next drag.
+    /// </remarks>
+    private void OnPinchEnded(object? sender, PinchEndedEventArgs e)
+    {
+        pinchedFrom = null;
+        EndDrag();
+    }
 
     /// <summary>Double tapping jumps in on what was tapped, and back out again.</summary>
     private void OnDoubleTapped(object? sender, TappedEventArgs e) =>
@@ -489,13 +515,41 @@ public partial class VReportPreview : UserControl
             return;
         }
 
+        // A second finger down starts a pinch, not a second drag, and is left alone.
+        if (draggingPointer != null)
+        {
+            return;
+        }
+
+        draggingPointer = e.Pointer;
         draggingFrom = e.GetPosition(Viewport);
-        e.Pointer.Capture(Viewport);
+
+        // The mouse only, and this is the whole reason pinching used to work exactly once.
+        //
+        // A touch pointer is already captured, implicitly, by the platform: TouchDevice captures
+        // it to whatever was under the finger the moment it lands, so its moves reach this
+        // control by bubbling and a drag needs nothing further. Capturing it again here took it
+        // off the pinch recognizer, which grabs both contacts as the second finger arrives — and
+        // this handler runs after it, gesture recognizers being driven from a class handler on
+        // InputElement. The recognizer saw a capture lost, dropped the contact and raised
+        // PinchEnded before producing a single Pinch event, leaving one finger driving a pan.
+        //
+        // It only ever showed from the second gesture onwards, because the first starts at fitted
+        // where this handler returns above — so a reader could magnify a report once and then
+        // never again, in either direction.
+        //
+        // A mouse has no implicit capture and needs this one, or a drag stops the moment the
+        // pointer leaves the viewport. It also never reaches the recognizer, which answers to
+        // touch and pen alone.
+        if (e.Pointer.Type == PointerType.Mouse)
+        {
+            e.Pointer.Capture(Viewport);
+        }
     }
 
     private void OnPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (draggingFrom is not { } from)
+        if (draggingFrom is not { } from || e.Pointer != draggingPointer)
         {
             return;
         }
@@ -507,11 +561,41 @@ public partial class VReportPreview : UserControl
         ApplyTransform();
     }
 
+    /// <summary>
+    /// Ends the drag, and only the drag this control started.
+    /// </summary>
+    /// <remarks>
+    /// Releasing a capture it never took would clear somebody else's — the pinch recognizer's,
+    /// while the other finger is still in the middle of a gesture.
+    /// </remarks>
     private void OnPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        draggingFrom = null;
-        e.Pointer.Capture(null);
+        ArgumentNullException.ThrowIfNull(e);
+
+        if (e.Pointer != draggingPointer)
+        {
+            return;
+        }
+
+        EndDrag();
+
+        // Only the capture this control took — see OnPointerPressed.
+        if (e.Pointer.Type == PointerType.Mouse)
+        {
+            e.Pointer.Capture(null);
+        }
     }
 
-    private void OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e) => draggingFrom = null;
+    /// <summary>
+    /// The pinch recognizer taking the pointer, which is exactly when the drag gives way to it.
+    /// </summary>
+    private void OnPointerCaptureLost(object? sender, PointerCaptureLostEventArgs e)
+    {
+        ArgumentNullException.ThrowIfNull(e);
+
+        if (e.Pointer == draggingPointer)
+        {
+            EndDrag();
+        }
+    }
 }

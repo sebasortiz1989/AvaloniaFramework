@@ -1,7 +1,7 @@
 # AvaloniaFramework
 
-A small MVP/navigation framework for [Avalonia](https://avaloniaui.net) 12, packaged as the
-`AvaloniaFramework` NuGet package. It provides four things:
+A small MVP/navigation framework for [Avalonia](https://avaloniaui.net) 12. It provides four
+things:
 
 - a **dependency-injection container** with layered builders and deferred `Factory<T>` resolution
 - a **presenter lifecycle** where showing a screen is an awaitable operation that returns a result
@@ -209,6 +209,15 @@ configuration instead of copying settings around:
 <PackageReference Include="AvaloniaFramework.Development" Version="1.0.0" />
 ```
 
+**This one has to be a package.** MSBuild props/targets reach a consumer only through a
+`PackageReference`, so the submodule route above does not carry them — a `ProjectReference` imports
+no build logic. It is not on nuget.org either, so pack it and point a local feed at `artifacts/`:
+
+```bash
+dotnet pack AvaloniaFramework.slnx -c Release          # -> artifacts/
+dotnet nuget add source "$(pwd)/artifacts" --name avaloniaframework-local
+```
+
 That single reference turns on StyleCop plus the .NET analyzers (`AnalysisMode=AllEnabledByDefault`,
 `EnforceCodeStyleInBuild`) and applies the shared settings. Warnings fail the build **in Release
 only**, so day-to-day Debug builds stay workable.
@@ -264,9 +273,11 @@ their behaviour is appearance, which a test asserts badly.
 
 ## Consuming it
 
-Either add the published package, or — while the framework and the app are developed together —
-vendor it as a git submodule and reference the project directly, which removes the pack/version/
-restore cycle entirely:
+**There is no published package to add.** While the framework and the app are developed together
+that is the right trade: vendoring it as a git submodule and referencing the project directly
+removes the pack/version/restore cycle entirely, so a change to the framework reaches the app on
+the next build instead of after a version bump. The reference consumer,
+[Patas & Passeios](https://github.com/sebasortiz1989/PatasePasseios), does exactly this:
 
 ```bash
 git submodule add https://github.com/sebasortiz1989/AvaloniaFramework.git external/AvaloniaFramework

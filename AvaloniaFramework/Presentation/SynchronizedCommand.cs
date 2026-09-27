@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using System.Windows.Input;
 using AvaloniaFramework.Threading;
 
@@ -95,6 +96,19 @@ public sealed class SynchronizedCommand : ICommand, INotifyPropertyChanged, IDis
     /// <inheritdoc />
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    /// <summary>
+    /// Raised once for every fault a target throws, on the context the press was made from (the UI
+    /// thread, for a button), before the command is released. This is where a press made through <see cref="Execute"/> reports its
+    /// fault: a button has nothing to await, so without a handler the fault goes where
+    /// <see cref="AwaitExtensions.Forget(Task)"/> sends it, which is nowhere a user can see.
+    /// </summary>
+    /// <remarks>
+    /// A cancellation (<see cref="OperationCanceledException"/>) is not a fault and is not raised.
+    /// <see cref="ExecuteAsync"/> still faults with the first fault as well, so a caller that awaits
+    /// it sees the fault twice if it also handles this.
+    /// </remarks>
+    public event EventHandler<CommandFaultedEventArgs>? Faulted;
+
     /// <summary>Whether the command is currently enabled. Setting it re-queries bound controls.</summary>
     public bool CanExecute
     {
@@ -118,12 +132,33 @@ public sealed class SynchronizedCommand : ICommand, INotifyPropertyChanged, IDis
     bool ICommand.CanExecute(object? parameter) => canExecute;
 
     /// <inheritdoc />
-    public void Execute(object? parameter) => ExecuteAsync(parameter).Forget();
+    public void Execute(object? parameter)
+    {
+        var execution = ExecuteAsync(parameter);
+
+        if (Faulted is null)
+        {
+            execution.Forget();
+            return;
+        }
+
+        // Faulted has already carried every fault this execution met. Reading the exception here is
+        // what stops the same fault being reported a second time, as an unobserved task exception.
+        execution.ContinueWith(
+            static faulted => _ = faulted.Exception,
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+            TaskScheduler.Default);
+    }
 
     /// <summary>
     /// The awaitable form of <see cref="Execute"/>. The returned task completes once this
     /// invocation — and anything it caused to be queued — has finished.
     /// </summary>
+    /// <remarks>
+    /// A target that faults releases the command, and invocations queued behind it still run.
+    /// The returned task then faults with the first fault, once the queue has drained.
+    /// </remarks>
     public Task ExecuteAsync(object? parameter)
     {
         return TryBeginExecution(parameter)
@@ -173,26 +208,69 @@ public sealed class SynchronizedCommand : ICommand, INotifyPropertyChanged, IDis
 
     private async Task InvokeCurrentAndQueued(object? parameter)
     {
-        await InvokeTarget(target, parameter).WithSync();
+        ExceptionDispatchInfo? firstFault = null;
+        var released = false;
 
-        while (true)
+        try
         {
-            PendingExecution[] captured;
+            firstFault = await InvokeObservingFault(new PendingExecution(target, parameter)).WithSync();
 
-            lock (executionGate)
+            while (true)
             {
-                if (waiting is not { Count: > 0 })
+                PendingExecution[] captured;
+
+                lock (executionGate)
                 {
-                    isRunning = false;
-                    return;
+                    // Released under the same lock that finds the queue empty, so a press arriving
+                    // between the two cannot be queued behind a run that has already ended.
+                    if (waiting is not { Count: > 0 })
+                    {
+                        isRunning = false;
+                        released = true;
+                        break;
+                    }
+
+                    captured = [.. waiting];
+                    waiting.Clear();
                 }
 
-                captured = [.. waiting];
-                waiting.Clear();
+                // Every queued press runs even after a fault: each one is a press the user made.
+                foreach (var pending in captured)
+                {
+                    var fault = await InvokeObservingFault(pending).WithSync();
+                    firstFault ??= fault;
+                }
             }
+        }
+        finally
+        {
+            // Reached un-released only when a Faulted handler itself throws. The command must not
+            // stay running on that path either, or the button is dead for the rest of its life.
+            if (!released)
+            {
+                lock (executionGate)
+                    isRunning = false;
+            }
+        }
 
-            foreach (var pending in captured)
-                await pending.Execute().WithSync();
+        firstFault?.Throw();
+    }
+
+    private async Task<ExceptionDispatchInfo?> InvokeObservingFault(PendingExecution pending)
+    {
+        try
+        {
+            await pending.Execute().WithSync();
+            return null;
+        }
+#pragma warning disable CA1031 // Deliberately general: the fault is captured and rethrown once the queue drains.
+        catch (Exception exception)
+#pragma warning restore CA1031
+        {
+            if (exception is not OperationCanceledException)
+                Faulted?.Invoke(this, new CommandFaultedEventArgs(exception));
+
+            return ExceptionDispatchInfo.Capture(exception);
         }
     }
 

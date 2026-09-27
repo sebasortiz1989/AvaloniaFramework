@@ -121,9 +121,14 @@ public partial class LoginView : PresenterUserControl<LoginViewModel, Unit, Unit
 | `AvaloniaFramework` | `Unit` (the no-input/no-result type), `LayoutStyles` |
 | `AvaloniaFramework.Threading` | `WithSync()` / `NoSync()` / `Forget()`, `SynchronizationContext.SwitchTo()` and `Run()` |
 | `AvaloniaFramework.DependencyInjection` | `Container`, `ContainerBuilder`, `ImmutableContainerBuilder`, `ContainerRegistration`, `Factory<T>` |
-| `AvaloniaFramework.Presentation` | `NavigationController`, `SynchronizedCommand`, `SynchronizationBehavior`, `PresentationExecutionContext`, `PeriodPicker`, `PeriodScope`, `PeriodCell`, `MonthOption` |
+| `AvaloniaFramework.Presentation` | `NavigationController`, `SynchronizedCommand`, `SynchronizationBehavior`, `CommandFaultedEventArgs`, `PresentationExecutionContext`, `PeriodPicker`, `PeriodScope`, `PeriodCell`, `MonthOption` |
 | `AvaloniaFramework.Presentation.UseCase` | `PresentationModelBase<,>`, `PresenterBase<,,>`, `LifecycleStep<,>` |
 | `AvaloniaFramework.Controls` | `PresenterUserControl<,,>`, `VButton`, `GroupButton`, `VTextBoxWithLabel`, `VPhotoViewer`, `VReportPreview`, `VPeriodPicker` |
+
+**A `SynchronizedCommand` whose target throws is released**: the next press runs, and presses
+queued behind the fault still run. A button press has nothing to await, so to show the user a
+fault, handle `Faulted`. Without a handler the fault goes where `Forget()` sends it, which is
+`TaskScheduler.UnobservedTaskException` and not the screen. A cancellation is not raised as a fault.
 | `AvaloniaFramework.Imaging` | `ImageLoader`, `PhotoCache`, `PhotoDownscaler`, `ExifOrientation` |
 | `AvaloniaFramework.Hosting` | `ApplicationPreview`, `ShellWindow`, `ShellView`, `ScreenOverlay`, `AvaloniaNavigationController`, `AvaloniaViewContainerBuilder` |
 
@@ -266,9 +271,9 @@ Packing is an explicit step rather than a side effect of building, and always wr
 dotnet test AvaloniaFramework.Tests/AvaloniaFramework.Tests.csproj
 ```
 
-53 tests over the parts where being wrong is silent: container resolution and
+59 tests over the parts where being wrong is silent: container resolution and
 lifestyles, the presenter lifecycle, `SynchronizedCommand`'s discard/queue
-behaviour, and the navigation controller. The controls are not unit-tested —
+behaviour and what it does when a target faults, and the navigation controller. The controls are not unit-tested —
 their behaviour is appearance, which a test asserts badly.
 
 ## Consuming it

@@ -124,13 +124,15 @@ public partial class LoginView : PresenterUserControl<LoginViewModel, Unit, Unit
 | `AvaloniaFramework.Presentation` | `NavigationController`, `SynchronizedCommand`, `SynchronizationBehavior`, `CommandFaultedEventArgs`, `PresentationExecutionContext`, `PeriodPicker`, `PeriodScope`, `PeriodCell`, `MonthOption` |
 | `AvaloniaFramework.Presentation.UseCase` | `PresentationModelBase<,>`, `PresenterBase<,,>`, `LifecycleStep<,>` |
 | `AvaloniaFramework.Controls` | `PresenterUserControl<,,>`, `VButton`, `GroupButton`, `VTextBoxWithLabel`, `VPhotoViewer`, `VReportPreview`, `VPeriodPicker` |
+| `AvaloniaFramework.Imaging` | `ImageLoader`, `PhotoCache`, `PhotoDownscaler`, `ExifOrientation` |
+| `AvaloniaFramework.Hosting` | `ApplicationPreview`, `ShellWindow`, `ShellView`, `ScreenOverlay`, `AvaloniaNavigationController`, `AvaloniaViewContainerBuilder` |
 
 **A `SynchronizedCommand` whose target throws is released**: the next press runs, and presses
 queued behind the fault still run. A button press has nothing to await, so to show the user a
 fault, handle `Faulted`. Without a handler the fault goes where `Forget()` sends it, which is
-`TaskScheduler.UnobservedTaskException` and not the screen. A cancellation is not raised as a fault.
-| `AvaloniaFramework.Imaging` | `ImageLoader`, `PhotoCache`, `PhotoDownscaler`, `ExifOrientation` |
-| `AvaloniaFramework.Hosting` | `ApplicationPreview`, `ShellWindow`, `ShellView`, `ScreenOverlay`, `AvaloniaNavigationController`, `AvaloniaViewContainerBuilder` |
+`TaskScheduler.UnobservedTaskException` and not the screen. A cancellation is not raised as a fault,
+and does not hide a fault queued after it. A `Faulted` handler that throws does not strand the
+queue, and its exception is not swallowed: it goes where an unhandled fault goes.
 
 `Unit` deliberately avoids the name `Void`, which collides with `System.Void` under a global using.
 

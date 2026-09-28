@@ -36,8 +36,14 @@ public static class AwaitExtensions
 
     /// <summary>
     /// Explicitly abandons a task, so that fire-and-forget call sites read as deliberate rather
-    /// than as a forgotten await. Faults are observed and rethrown on the thread pool.
+    /// than as a forgotten await.
     /// </summary>
+    /// <remarks>
+    /// A fault is rethrown inside a continuation that nothing observes, so it surfaces through
+    /// <see cref="TaskScheduler.UnobservedTaskException"/> once that continuation is collected. It is
+    /// not rethrown on the thread pool, where an unhandled exception ends the process. A cancelled
+    /// task is dropped.
+    /// </remarks>
     public static void Forget(this Task task)
     {
         ArgumentNullException.ThrowIfNull(task);

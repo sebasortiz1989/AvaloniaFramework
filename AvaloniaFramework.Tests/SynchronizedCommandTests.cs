@@ -1,5 +1,6 @@
 using AvaloniaFramework.Presentation;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using Xunit;
 
@@ -372,9 +373,194 @@ public class SynchronizedCommandTests
         Assert.Equal(2, calls);
     }
 
+    /// <summary>
+    /// A throwing <see cref="SynchronizedCommand.Faulted"/> handler does not strand the press queued
+    /// behind the fault until some later press: the queued press runs before the awaited task
+    /// ends, and the handler's exception is still what the awaiting caller sees.
+    /// </summary>
+    [Fact]
+    public async Task AThrowingFaultHandlerDoesNotStrandThePressQueuedBehindIt()
+    {
+        var runs = 0;
+        SynchronizedCommand? command = null;
+
+        command = new SynchronizedCommand(
+            async () =>
+            {
+                runs++;
+                if (runs == 1)
+                {
+                    await command!.ExecuteAsync(null);
+                    throw new InvalidOperationException("the target faults with a press queued behind it");
+                }
+            },
+            SynchronizationBehavior.Enqueue,
+            true);
+        command.Faulted += (_, _) => throw new NotSupportedException("the handler faults too");
+
+        await Assert.ThrowsAsync<NotSupportedException>(() => command.ExecuteAsync(null));
+        Assert.Equal(2, runs);
+
+        await command.ExecuteAsync(null);
+        Assert.Equal(3, runs);
+        command.Dispose();
+    }
+
+    /// <summary>
+    /// From a button press, a throwing handler's exception is not swallowed: it goes where
+    /// <see cref="AvaloniaFramework.Threading.AwaitExtensions.Forget(Task)"/> sends a fault nobody handled. The
+    /// target's fault, which the handler was given, does not go there too.
+    /// </summary>
+    [Fact]
+    public async Task AThrowingFaultHandlersExceptionFromAButtonPressIsNotSwallowed()
+    {
+        var targetFault = new InvalidOperationException("the target faults");
+        var handlerFault = new NotSupportedException("the handler faults too");
+        var targetUnobserved = 0;
+        var handlerUnobserved = 0;
+
+        void OnUnobserved(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            var inner = e.Exception.Flatten().InnerExceptions;
+            if (inner.Contains(targetFault))
+                Interlocked.Increment(ref targetUnobserved);
+            if (inner.Contains(handlerFault))
+                Interlocked.Increment(ref handlerUnobserved);
+        }
+
+        TaskScheduler.UnobservedTaskException += OnUnobserved;
+        try
+        {
+            var handled = new TaskCompletionSource();
+            PressAndAbandon(targetFault, handled, handlerFault);
+            await handled.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            for (var pass = 0; pass < 50 && Volatile.Read(ref handlerUnobserved) == 0; pass++)
+            {
+                await Task.Delay(20);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+
+            Assert.Equal(1, handlerUnobserved);
+            Assert.Equal(0, targetUnobserved);
+        }
+        finally
+        {
+            TaskScheduler.UnobservedTaskException -= OnUnobserved;
+        }
+    }
+
+    /// <summary>
+    /// A cancelled press does not hide a fault queued after it. The awaited task used to end
+    /// cancelled here, and with no handler a button press then dropped the real fault entirely.
+    /// </summary>
+    [Fact]
+    public async Task AnEarlierCancellationDoesNotMaskALaterFault()
+    {
+        var runs = 0;
+        SynchronizedCommand? command = null;
+
+        command = new SynchronizedCommand(
+            async () =>
+            {
+                runs++;
+                if (runs == 1)
+                {
+                    await command!.ExecuteAsync(null);
+                    throw new OperationCanceledException();
+                }
+
+                throw new InvalidOperationException("the queued press faults");
+            },
+            SynchronizationBehavior.Enqueue,
+            true);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => command.ExecuteAsync(null));
+        Assert.Equal(2, runs);
+        command.Dispose();
+    }
+
+    /// <summary>
+    /// With no <see cref="SynchronizedCommand.Faulted"/> handler, a button press's fault is not
+    /// swallowed: it goes where <see cref="AvaloniaFramework.Threading.AwaitExtensions.Forget(Task)"/>
+    /// sends a fault nobody handled. Every command without a handler reports its faults this way.
+    /// </summary>
+    [Fact]
+    public async Task AFaultFromAButtonPressWithNoHandlerIsNotSwallowed()
+    {
+        var thrown = new InvalidOperationException("no handler was subscribed");
+        var unobserved = 0;
+
+        void OnUnobserved(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            if (e.Exception.Flatten().InnerExceptions.Contains(thrown))
+                Interlocked.Increment(ref unobserved);
+        }
+
+        TaskScheduler.UnobservedTaskException += OnUnobserved;
+        try
+        {
+            var ran = new TaskCompletionSource();
+            PressWithNoHandlerAndAbandon(thrown, ran);
+            await ran.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            for (var pass = 0; pass < 50 && Volatile.Read(ref unobserved) == 0; pass++)
+            {
+                await Task.Delay(20);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+
+            Assert.Equal(1, unobserved);
+        }
+        finally
+        {
+            TaskScheduler.UnobservedTaskException -= OnUnobserved;
+        }
+    }
+
+    /// <summary>
+    /// The same route, with a cancelled press ahead of the fault. A cancellation used to hide the
+    /// fault queued after it, and with no handler a button press then reported it nowhere at all.
+    /// </summary>
+    [Fact]
+    public async Task ACancellationBeforeAFaultDoesNotHideItFromAButtonPressWithNoHandler()
+    {
+        var thrown = new InvalidOperationException("the queued press faults");
+        var unobserved = 0;
+
+        void OnUnobserved(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            if (e.Exception.Flatten().InnerExceptions.Contains(thrown))
+                Interlocked.Increment(ref unobserved);
+        }
+
+        TaskScheduler.UnobservedTaskException += OnUnobserved;
+        try
+        {
+            var ran = new TaskCompletionSource();
+            PressCancelThenFaultWithNoHandlerAndAbandon(thrown, ran);
+            await ran.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+            for (var pass = 0; pass < 50 && Volatile.Read(ref unobserved) == 0; pass++)
+            {
+                await Task.Delay(20);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+
+            Assert.Equal(1, unobserved);
+        }
+        finally
+        {
+            TaskScheduler.UnobservedTaskException -= OnUnobserved;
+        }
+    }
+
     // Not inlined: the command and its task must be unreachable once this returns, or the
     // collector cannot finalize the task and an unobserved exception could never be reported.
-    private static void PressAndAbandon(Exception thrown, TaskCompletionSource handled)
+    private static void PressAndAbandon(Exception thrown, TaskCompletionSource handled, Exception? handlerThrows = null)
     {
         var command = new SynchronizedCommand(
             async () =>
@@ -385,7 +571,56 @@ public class SynchronizedCommandTests
             SynchronizationBehavior.Discard,
             true);
 
-        command.Faulted += (_, _) => handled.TrySetResult();
+        command.Faulted += (_, _) =>
+        {
+            handled.TrySetResult();
+            if (handlerThrows is not null)
+                throw handlerThrows;
+        };
+        ((ICommand)command).Execute(null);
+    }
+
+    // Not inlined, for the reason PressAndAbandon gives.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void PressWithNoHandlerAndAbandon(Exception thrown, TaskCompletionSource ran)
+    {
+        var command = new SynchronizedCommand(
+            async () =>
+            {
+                await Task.Yield();
+                ran.TrySetResult();
+                throw thrown;
+            },
+            SynchronizationBehavior.Discard,
+            true);
+
+        ((ICommand)command).Execute(null);
+    }
+
+    // The first press queues a second and is then cancelled; the queued press faults.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void PressCancelThenFaultWithNoHandlerAndAbandon(Exception thrown, TaskCompletionSource ran)
+    {
+        var runs = 0;
+        SynchronizedCommand? command = null;
+
+        command = new SynchronizedCommand(
+            async () =>
+            {
+                runs++;
+                if (runs == 1)
+                {
+                    ((ICommand)command!).Execute(null);
+                    await Task.Yield();
+                    throw new OperationCanceledException();
+                }
+
+                ran.TrySetResult();
+                throw thrown;
+            },
+            SynchronizationBehavior.Enqueue,
+            true);
+
         ((ICommand)command).Execute(null);
     }
 }

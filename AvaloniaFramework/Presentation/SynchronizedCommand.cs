@@ -106,6 +106,10 @@ public sealed class SynchronizedCommand : ICommand, INotifyPropertyChanged, IDis
     /// A cancellation (<see cref="OperationCanceledException"/>) is not a fault and is not raised.
     /// <see cref="ExecuteAsync"/> still faults with the first fault as well, so a caller that awaits
     /// it sees the fault twice if it also handles this.
+    /// A handler that throws is a bug in the handler, and its exception is not swallowed. Presses
+    /// queued behind the fault still run; then <see cref="ExecuteAsync"/>'s task faults with the
+    /// handler's exception, and from <see cref="Execute"/> it goes where
+    /// <see cref="AwaitExtensions.Forget(Task)"/> sends it.
     /// </remarks>
     public event EventHandler<CommandFaultedEventArgs>? Faulted;
 
@@ -134,21 +138,12 @@ public sealed class SynchronizedCommand : ICommand, INotifyPropertyChanged, IDis
     /// <inheritdoc />
     public void Execute(object? parameter)
     {
-        var execution = ExecuteAsync(parameter);
-
-        if (Faulted is null)
-        {
-            execution.Forget();
-            return;
-        }
-
-        // Faulted has already carried every fault this execution met. Reading the exception here is
-        // what stops the same fault being reported a second time, as an unobserved task exception.
-        execution.ContinueWith(
-            static faulted => _ = faulted.Exception,
-            CancellationToken.None,
-            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
-            TaskScheduler.Default);
+        // A button has nothing to await, so this task is abandoned, and it faults only with the first
+        // fault no Faulted handler carried: a target's fault when there is no handler, or a handler's
+        // own exception when one throws. A fault a handler did carry is not reported a second time,
+        // as an unobserved task exception.
+        if (TryBeginExecution(parameter))
+            InvokeCurrentAndQueued(parameter, includeReportedFaults: false).Forget();
     }
 
     /// <summary>
@@ -157,12 +152,15 @@ public sealed class SynchronizedCommand : ICommand, INotifyPropertyChanged, IDis
     /// </summary>
     /// <remarks>
     /// A target that faults releases the command, and invocations queued behind it still run.
-    /// The returned task then faults with the first fault, once the queue has drained.
+    /// Once the queue has drained, the returned task faults with the first fault no
+    /// <see cref="Faulted"/> handler was given — a handler's own exception, or a fault met while no
+    /// handler was subscribed — and otherwise with the first fault. It ends cancelled only when
+    /// nothing faulted, so a cancellation does not hide a fault queued after it.
     /// </remarks>
     public Task ExecuteAsync(object? parameter)
     {
         return TryBeginExecution(parameter)
-            ? InvokeCurrentAndQueued(parameter)
+            ? InvokeCurrentAndQueued(parameter, includeReportedFaults: true)
             : Task.CompletedTask;
     }
 
@@ -206,14 +204,14 @@ public sealed class SynchronizedCommand : ICommand, INotifyPropertyChanged, IDis
         }
     }
 
-    private async Task InvokeCurrentAndQueued(object? parameter)
+    private async Task InvokeCurrentAndQueued(object? parameter, bool includeReportedFaults)
     {
-        ExceptionDispatchInfo? firstFault = null;
+        var faults = new FaultLog();
         var released = false;
 
         try
         {
-            firstFault = await InvokeObservingFault(new PendingExecution(target, parameter)).WithSync();
+            await InvokeObservingFault(new PendingExecution(target, parameter), faults).WithSync();
 
             while (true)
             {
@@ -236,16 +234,14 @@ public sealed class SynchronizedCommand : ICommand, INotifyPropertyChanged, IDis
 
                 // Every queued press runs even after a fault: each one is a press the user made.
                 foreach (var pending in captured)
-                {
-                    var fault = await InvokeObservingFault(pending).WithSync();
-                    firstFault ??= fault;
-                }
+                    await InvokeObservingFault(pending, faults).WithSync();
             }
         }
         finally
         {
-            // Reached un-released only when a Faulted handler itself throws. The command must not
-            // stay running on that path either, or the button is dead for the rest of its life.
+            // InvokeObservingFault catches a target's fault and a Faulted handler's alike, so no
+            // known path reaches here un-released. If one ever does, the command must still not
+            // stay running, or the button is dead for the rest of its life.
             if (!released)
             {
                 lock (executionGate)
@@ -253,29 +249,87 @@ public sealed class SynchronizedCommand : ICommand, INotifyPropertyChanged, IDis
             }
         }
 
-        firstFault?.Throw();
+        faults.Rethrow(includeReportedFaults);
     }
 
-    private async Task<ExceptionDispatchInfo?> InvokeObservingFault(PendingExecution pending)
+    private async Task InvokeObservingFault(PendingExecution pending, FaultLog faults)
     {
         try
         {
             await pending.Execute().WithSync();
-            return null;
         }
 #pragma warning disable CA1031 // Deliberately general: the fault is captured and rethrown once the queue drains.
         catch (Exception exception)
 #pragma warning restore CA1031
         {
-            if (exception is not OperationCanceledException)
-                Faulted?.Invoke(this, new CommandFaultedEventArgs(exception));
+            if (exception is OperationCanceledException)
+            {
+                faults.AddCancellation(exception);
+                return;
+            }
 
-            return ExceptionDispatchInfo.Capture(exception);
+            var handler = Faulted;
+            faults.AddFault(exception, reported: handler is not null);
+
+            if (handler is null)
+                return;
+
+            try
+            {
+                handler(this, new CommandFaultedEventArgs(exception));
+            }
+#pragma warning disable CA1031 // Deliberately general: a handler's own exception must not strand the presses queued behind it.
+            catch (Exception handlerException)
+#pragma warning restore CA1031
+            {
+                faults.AddHandlerFault(handlerException);
+            }
         }
     }
 
     private readonly struct PendingExecution(Delegate target, object? parameter)
     {
         public Task Execute() => InvokeTarget(target, parameter);
+    }
+
+    /// <summary>What one execution and the presses queued behind it threw, kept until the queue drains.</summary>
+    private sealed class FaultLog
+    {
+        private ExceptionDispatchInfo? firstFault;
+        private ExceptionDispatchInfo? firstUnreported;
+        private ExceptionDispatchInfo? firstCancellation;
+
+        public void AddCancellation(Exception exception) =>
+            firstCancellation ??= ExceptionDispatchInfo.Capture(exception);
+
+        /// <summary>A target's fault. It is reported when a <see cref="Faulted"/> handler was given it.</summary>
+        public void AddFault(Exception exception, bool reported)
+        {
+            var fault = ExceptionDispatchInfo.Capture(exception);
+            firstFault ??= fault;
+
+            if (!reported)
+                firstUnreported ??= fault;
+        }
+
+        /// <summary>A <see cref="Faulted"/> handler's own exception, which nothing else will carry.</summary>
+        public void AddHandlerFault(Exception exception) =>
+            firstUnreported ??= ExceptionDispatchInfo.Capture(exception);
+
+        /// <summary>
+        /// Throws what the caller is owed. An awaiting caller gets the first unreported fault, else
+        /// the first fault, and a cancellation only when nothing faulted. An abandoned press gets
+        /// the unreported fault alone.
+        /// </summary>
+        public void Rethrow(bool includeReportedFaults)
+        {
+            if (!includeReportedFaults)
+            {
+                firstUnreported?.Throw();
+                return;
+            }
+
+            (firstUnreported ?? firstFault ?? firstCancellation)?.Throw();
+        }
     }
 }

@@ -38,8 +38,9 @@ only for publishing.
 Note the consumer pins a **submodule commit**, so a change here does not reach other machines until
 it is committed and pushed and DapperDemo's submodule pointer is advanced.
 
-There are no test projects and no lint/format tooling. Do not invent test or lint commands. Verify
-changes by building, and for behavioural changes by building `../DapperDemo`
+`AvaloniaFramework.Tests` is the test project: `dotnet test AvaloniaFramework.slnx`. There is no
+lint/format tooling; do not invent lint commands. Verify changes by building and testing, and for
+behavioural changes also by building `../DapperDemo`
 (`dotnet build DapperDemo.sln`). A GUI app cannot be launched from a headless shell — Avalonia's
 native platform fails to start a render timer — so runtime verification of container, lifecycle,
 navigation, and command behaviour is best done from a small console harness referencing the package.
